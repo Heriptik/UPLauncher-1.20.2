@@ -23,7 +23,7 @@ loginCancelText = "Cancel"
 loginSubheader = "MINECRAFT LOGIN"
 loginEmailError = "* Invalid Value"
 loginEmailPlaceholder = "EMAIL OR USERNAME"
-loginPasswordError = "* Required"
+loginPasswordError = "* Requiet"
 loginPasswordPlaceholder = "PASSWORD"
 loginForgotPasswordLink = "https://minecraft.net/password/forgot/"
 loginForgotPasswordText = "forgot password?"
@@ -166,9 +166,9 @@ noSelection = "No Server Selected"
 loading = "Loading.."
 
 [js.landing.serverStatus]
-server = "SERVER"
+server = "SERVEUR"
 offline = "OFFLINE"
-players = "PLAYERS"
+players = "JOUEURS"
 
 [js.landing.systemScan]
 checking = "Checking system info.."

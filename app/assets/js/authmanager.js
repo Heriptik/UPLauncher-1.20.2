@@ -139,31 +139,34 @@ function mojangErrorDisplayable(errorCode) {
  * @param {string} password The account password.
  * @returns {Promise.<Object>} Promise which resolves the resolved authenticated account object.
  */
+const axios = require('axios');
+
 exports.addMojangAccount = async function(username, password) {
     try {
-        const response = await MojangRestAPI.authenticate(username, password, ConfigManager.getClientToken())
-        console.log(response)
-        if(response.responseStatus === RestResponseStatus.SUCCESS) {
+        // Récupérer l'UUID réel du joueur à partir de l'API Mojang
+        const response = await axios.get('https://api.mojang.com/users/profiles/minecraft/' + username);
+        const uuid = response.data.id
 
-            const session = response.data
-            if(session.selectedProfile != null){
-                const ret = ConfigManager.addMojangAuthAccount(session.selectedProfile.id, session.accessToken, username, session.selectedProfile.name)
-                if(ConfigManager.getClientToken() == null){
-                    ConfigManager.setClientToken(session.clientToken)
-                }
-                ConfigManager.save()
-                return ret
-            } else {
-                return Promise.reject(mojangErrorDisplayable(MojangErrorCode.ERROR_NOT_PAID))
-            }
+        if (!uuid) {
+            throw new Error('Unable to retrieve UUID for username: ' + username);
+        }
 
-        } else {
-            return Promise.reject(mojangErrorDisplayable(response.mojangErrorCode))
+        // Enregistrer le compte avec le vrai UUID
+        const ret = ConfigManager.addMojangAuthAccount(uuid, 'sry', username, username);
+        
+        // Mettre à jour le clientToken si nécessaire
+        if (ConfigManager.getClientToken() == null) {
+            ConfigManager.setClientToken('sry');
         }
         
-    } catch (err){
-        log.error(err)
-        return Promise.reject(mojangErrorDisplayable(MojangErrorCode.UNKNOWN))
+        // Sauvegarder les changements
+        ConfigManager.save();
+        
+        return ret;
+
+    } catch (err) {
+        log.error(err);
+        return Promise.reject(mojangErrorDisplayable(MojangErrorCode.UNKNOWN));
     }
 }
 
