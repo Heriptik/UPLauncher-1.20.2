@@ -7,7 +7,7 @@ const logger = LoggerUtil.getLogger('ConfigManager')
 
 const sysRoot = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
 
-const dataPath = path.join(sysRoot, '.Pixelmon-Ultra-1.20.1')
+const dataPath = path.join(sysRoot, '.PixelmonUltra-1.20.2')
 
 const launcherDir = require('@electron/remote').app.getPath('userData')
 
