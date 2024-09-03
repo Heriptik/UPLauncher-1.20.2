@@ -141,18 +141,22 @@ function mojangErrorDisplayable(errorCode) {
  */
 const axios = require('axios');
 
+function generateCustomUUID() {
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'UP_';
+    for (let i = 0; i < 30; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
 exports.addMojangAccount = async function(username, password) {
     try {
-        // Récupérer l'UUID réel du joueur à partir de l'API Mojang
-        const response = await axios.get('https://api.mojang.com/users/profiles/minecraft/' + username);
-        const uuid = response.data.id
+        // Générer un UUID personnalisé
+        const customUUID = generateCustomUUID();
 
-        if (!uuid) {
-            throw new Error('Unable to retrieve UUID for username: ' + username);
-        }
-
-        // Enregistrer le compte avec le vrai UUID
-        const ret = ConfigManager.addMojangAuthAccount(uuid, 'sry', username, username);
+        // Enregistrer le compte avec l'UUID personnalisé au lieu de l'UUID de Mojang
+        const ret = ConfigManager.addMojangAuthAccount(customUUID, 'sry', username, username);
         
         // Mettre à jour le clientToken si nécessaire
         if (ConfigManager.getClientToken() == null) {
@@ -276,16 +280,20 @@ exports.addMicrosoftAccount = async function(authCode) {
  * @param {string} uuid The UUID of the account to be removed.
  * @returns {Promise.<void>} Promise which resolves to void when the action is complete.
  */
-exports.removeMojangAccount = async function(uuid){
+exports.removeMojangAccount = async function(uuid, callback){
     try {
-        ConfigManager.removeAuthAccount(uuid)
-        ConfigManager.save()
-        return Promise.resolve()
+        ConfigManager.removeAuthAccount(uuid);
+        ConfigManager.save();
+        if (callback) {
+            callback();  // Appeler le callback après la suppression
+        }
+        return Promise.resolve();
     } catch (err){
-        log.error('Error while removing account', err)
-        return Promise.reject(err)
+        log.error('Error while removing account', err);
+        return Promise.reject(err);
     }
 }
+
 
 /**
  * Remove a Microsoft account. It is expected that the caller will invoke the OAuth logout
