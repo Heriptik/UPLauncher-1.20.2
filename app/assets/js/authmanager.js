@@ -140,10 +140,10 @@ function mojangErrorDisplayable(errorCode) {
  * @returns {Promise.<Object>} Promise which resolves the resolved authenticated account object.
  */
 
-function generateCustomUUID() {
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = 'UP_';
-    for (let i = 0; i < 30; i++) {
+function generateHexUUID() {
+    const characters = 'abcdef0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return result;
@@ -151,22 +151,17 @@ function generateCustomUUID() {
 
 exports.addMojangAccount = async function(username, password) {
     try {
-        // Générer un UUID personnalisé
-        const customUUID = generateCustomUUID();
+        const uuid = generateHexUUID(); // Générer un UUID personnalisé
 
-        // Enregistrer le compte avec l'UUID personnalisé au lieu de l'UUID de Mojang
-        const ret = ConfigManager.addMojangAuthAccount(customUUID, 'sry', username, username);
+        const ret = ConfigManager.addMojangAuthAccount(uuid, 'sry', username, username);
         
-        // Mettre à jour le clientToken si nécessaire
         if (ConfigManager.getClientToken() == null) {
             ConfigManager.setClientToken('sry');
         }
         
-        // Sauvegarder les changements
         ConfigManager.save();
-        
         return ret;
-
+        
     } catch (err) {
         log.error(err);
         return Promise.reject(mojangErrorDisplayable(MojangErrorCode.UNKNOWN));
