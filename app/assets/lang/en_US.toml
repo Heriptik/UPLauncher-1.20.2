@@ -290,11 +290,11 @@ fatalErrorMessage = "A connection could not be established to our servers to dow
 closeButton = "Close"
 
 [js.uibinder.validateAccount]
-failedMessageTitle = "Failed to Refresh Login"
-failedMessage = "We were unable to refresh the login for <strong>{account}</strong>. Please select another account or login again."
-failedMessageSelectAnotherAccount = "We were unable to refresh the login for <strong>{account}</strong>. Please login again."
-loginButton = "Login"
-selectAnotherAccountButton = "Select Another Account"
+failedMessageTitle = "Erreur de connexion"
+failedMessage = "Impossible de charger <strong>{account}</strong>. Séléctionnez un autre compte ou reconnectez vous."
+failedMessageSelectAnotherAccount = "Impossible de charger <strong>{account}</strong>. Séléctionnez un autre compte ou reconnectez vous."
+loginButton = "Connexion"
+selectAnotherAccountButton = "Selectionnez un autre compte"
 
 [js.uicore.autoUpdate]
 checkingForUpdateButton = "Checking for Updates..."
