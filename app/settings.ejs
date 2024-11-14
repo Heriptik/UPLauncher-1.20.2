@@ -10,9 +10,9 @@
                     <button class="settingsNavItem" rSc="settingsTabMinecraft"><%- lang('settings.navMinecraft') %></button>
                     <button class="settingsNavItem" rSc="settingsTabMods"><%- lang('settings.navMods') %></button>
                     <button class="settingsNavItem" rSc="settingsTabJava"><%- lang('settings.navJava') %></button>
-                    <button class="settingsNavItem" rSc="settingsTabLauncher"><%- lang('settings.navLauncher') %></button>
+                    <button class="settingsNavItem" rSc="settingsTabLauncher" style="display: none;"><%- lang('settings.navLauncher') %></button>
                     <div class="settingsNavSpacer"></div>
-                    <button class="settingsNavItem" rSc="settingsTabAbout"><%- lang('settings.navAbout') %></button>
+                    <button class="settingsNavItem" rSc="settingsTabAbout" style="display: none;"><%- lang('settings.navAbout') %></button>
                     <button class="settingsNavItem" rSc="settingsTabUpdate" id="settingsNavUpdate"><%- lang('settings.navUpdates') %></button>
                     <div id="settingsNavContentBottom">
                         <div class="settingsNavDivider"></div>
@@ -28,7 +28,7 @@
                 <span class="settingsTabHeaderText"><%- lang('settings.tabAccountHeaderText') %></span>
                 <span class="settingsTabHeaderDesc"><%- lang('settings.tabAccountHeaderDesc') %></span>
             </div>
-            <div class="settingsAuthAccountTypeContainer">
+            <div class="settingsAuthAccountTypeContainer" style="display: none;">
                 <div class="settingsAuthAccountTypeHeader">
                     <div class="settingsAuthAccountTypeHeaderLeft">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 23 23">
@@ -39,7 +39,7 @@
                         </svg>
                         <span><%- lang('settings.microsoftAccount') %></span>
                     </div>
-                    <div class="settingsAuthAccountTypeHeaderRight">
+                    <div class="settingsAuthAccountTypeHeaderRight" >
                         <button class="settingsAddAuthAccount" id="settingsAddMicrosoftAccount"><%- lang('settings.addMicrosoftAccount') %></button>
                     </div>
                 </div>
