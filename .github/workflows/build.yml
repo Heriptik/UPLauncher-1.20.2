@@ -7,7 +7,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     permissions:
-      contents: write
+      contents: write  # Autorise la publication des contenus
+      actions: read
 
     strategy:
       matrix:
@@ -20,12 +21,29 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.x
+          python-version: '3.x'
+
+      # Étape spécifique pour macOS
+      - name: macOS dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install wine
+          brew install mono
+        shell: bash
+
+      # Cache pour les modules Node.js
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install Dependencies
         run: npm ci
