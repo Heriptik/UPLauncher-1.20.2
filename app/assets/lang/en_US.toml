@@ -120,7 +120,7 @@ viewReleaseNotes = "View Release Notes on GitHub"
 launcherUpdatesHeaderText = "Launcher Updates"
 launcherUpdatesHeaderDesc = "Télécharger, installer et voir les mises à jour du launcher."
 checkForUpdates = "Vérifier les mises à jour"
-whatsNew = "What's New"
+whatsNew = "Nouvelle Version"
 updateReleaseNotes = "Update Release Notes"
 
 [ejs.waiting]
