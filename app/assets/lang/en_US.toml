@@ -108,7 +108,7 @@ dataDirectoryDesc = "All game files and local Java installations will be stored 
 aboutTabHeaderText = "About"
 aboutTabHeaderDesc = "View information and release notes for the current version."
 aboutTitle = "{appName}"
-stableRelease = "Stable Release"
+stableRelease = "Version Stable"
 versionText = "Version "
 sourceGithub = "Source (GitHub)"
 support = "Support"
@@ -118,7 +118,7 @@ changelog = "Changelog"
 noReleaseNotes = "No Release Notes"
 viewReleaseNotes = "View Release Notes on GitHub"
 launcherUpdatesHeaderText = "Launcher Updates"
-launcherUpdatesHeaderDesc = "Download, install, and review updates for the launcher."
+launcherUpdatesHeaderDesc = "Télécharger, installer et voir les mises à jour du launcher."
 checkForUpdates = "Check for Updates"
 whatsNew = "What's New"
 updateReleaseNotes = "Update Release Notes"
@@ -267,7 +267,7 @@ availableOptions = "Les options disponible pour Java {major} (HotSpot VM)"
 
 [js.settings.about]
 preReleaseTitle = "Pre-release"
-stableReleaseTitle = "Stable Release"
+stableReleaseTitle = "Version Stable"
 releaseNotesFailed = "Failed to load release notes."
 
 [js.settings.updates]
@@ -275,7 +275,7 @@ newReleaseTitle = "New Release Available"
 newPreReleaseTitle = "New Pre-release Available"
 downloadingButton = "Downloading.."
 downloadButton = 'Download from GitHub<span style="font-size: 10px;color: gray;text-shadow: none !important;">Close the launcher and run the dmg to update.</span>'
-latestVersionTitle = "You Are Running the Latest Version"
+latestVersionTitle = "Vous utilisez la dernière version"
 checkForUpdatesButton = "Check for Updates"
 checkingForUpdatesButton = "Checking for Updates.."
 
