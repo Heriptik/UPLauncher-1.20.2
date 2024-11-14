@@ -119,7 +119,7 @@ noReleaseNotes = "No Release Notes"
 viewReleaseNotes = "View Release Notes on GitHub"
 launcherUpdatesHeaderText = "Launcher Updates"
 launcherUpdatesHeaderDesc = "Télécharger, installer et voir les mises à jour du launcher."
-checkForUpdates = "Check for Updates"
+checkForUpdates = "Vérifier les mises à jour"
 whatsNew = "What's New"
 updateReleaseNotes = "Update Release Notes"
 
@@ -276,7 +276,7 @@ newPreReleaseTitle = "New Pre-release Available"
 downloadingButton = "Downloading.."
 downloadButton = 'Download from GitHub<span style="font-size: 10px;color: gray;text-shadow: none !important;">Close the launcher and run the dmg to update.</span>'
 latestVersionTitle = "Vous utilisez la dernière version"
-checkForUpdatesButton = "Check for Updates"
+checkForUpdatesButton = "Vérifier les mises à jour"
 checkingForUpdatesButton = "Checking for Updates.."
 
 [js.settings.msftLogin]
@@ -297,9 +297,9 @@ loginButton = "Connexion"
 selectAnotherAccountButton = "Selectionnez un autre compte"
 
 [js.uicore.autoUpdate]
-checkingForUpdateButton = "Checking for Updates..."
-installNowButton = "Install Now"
-checkForUpdatesButton = "Check for Updates"
+checkingForUpdateButton = "Vérification des mises à jour ..."
+installNowButton = "Installer maintenant"
+checkForUpdatesButton = "Vérifier les mises à jour"
 
 [js.auth.microsoft.error]
 noProfileTitle = "Error During Login:<br>Profile Not Set Up"
