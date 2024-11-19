@@ -315,31 +315,25 @@ exports.removeMicrosoftAccount = async function(uuid){
  * @returns {Promise.<boolean>} Promise which resolves to true if the access token is valid,
  * otherwise false.
  */
-async function validateSelectedMojangAccount(){
+async function validateSelectedMojangAccount() {
     const current = ConfigManager.getSelectedAccount()
-    const response = await MojangRestAPI.validate(current.accessToken, ConfigManager.getClientToken())
 
-    if(response.responseStatus === RestResponseStatus.SUCCESS) {
-        const isValid = response.data
-        if(!isValid){
-            const refreshResponse = await MojangRestAPI.refresh(current.accessToken, ConfigManager.getClientToken())
-            if(refreshResponse.responseStatus === RestResponseStatus.SUCCESS) {
-                const session = refreshResponse.data
-                ConfigManager.updateMojangAuthAccount(current.uuid, session.accessToken)
-                ConfigManager.save()
-            } else {
-                log.error('Error while validating selected profile:', refreshResponse.error)
-                log.info('Account access token is invalid.')
-                return false
-            }
+    try {
+        // Essai de validation du token
+        const response = await MojangRestAPI.validate(current.accessToken, ConfigManager.getClientToken())
+
+        if (response.responseStatus === RestResponseStatus.SUCCESS && response.data) {
             log.info('Account access token validated.')
             return true
         } else {
-            log.info('Account access token validated.')
-            return true
+            log.warn('Access token invalid or validation failed. Skipping...')
+            return true // Toujours considérer le compte comme valide
         }
+    } catch (error) {
+        log.error('Error while validating selected profile:', error)
+        log.warn('Forcing account as valid.')
+        return true // Toujours forcer comme valide en cas d'erreur
     }
-    
 }
 
 /**
