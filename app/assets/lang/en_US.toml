@@ -145,8 +145,8 @@ success = "SUCCESS"
 tryAgain = "Try Again"
 
 [js.login.error]
-invalidValue = "* Invalid Value"
-requiredValue = "* Required"
+invalidValue = "* Saisie Incorrecte"
+requiredValue = "* Requiert"
 
 [js.login.error.unknown]
 title = "Unknown Error During Login"

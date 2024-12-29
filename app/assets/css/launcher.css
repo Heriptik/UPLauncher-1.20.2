@@ -2994,7 +2994,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Logo image. */
 #image_seal {
-    height: 180px;
+    height: 193px;
     width: auto;
     position: relative;
     animation: pulse 2s infinite;
@@ -3189,6 +3189,33 @@ input:checked + .toggleSwitchSlider:before {
     right: 95px;
     text-align: right;
     -webkit-user-select: initial;
+}
+
+/* Texte supplémentaire sous le pseudo */
+#user_subtext {
+    font-size: 12px; /* Taille légèrement plus petite */
+    min-width: 135px;
+    font-weight: normal; /* Texte sans gras */
+    letter-spacing: 0.5px; /* Espacement des lettres */
+    text-shadow: 0px 0px 15px black;
+    position: absolute;
+    right: 95px; /* Aligner avec #user_text */
+    text-align: right;
+    margin-top: 33px; /* Espace entre le pseudo et le texte */
+    -webkit-user-select: none;
+}
+
+.status-dot {
+    display: inline-block; /* Permet de créer une boîte de taille précise */
+    width: 8px; /* Largeur du point */
+    height: 8px; /* Hauteur du point */
+    background-color: rgb(124, 252, 0); /* Couleur du point (vert) */
+    border-radius: 50%; /* Rend le point circulaire */
+    margin-left: 5px; /* Espace entre le texte "Online" et le point */
+    box-shadow: 0px 0px 5px rgb(124, 252, 0); /* Effet lumineux pour le point */
+    vertical-align: text; /* Ajuster pour mieux aligner avec le texte */
+    position: relative; /* Position relative pour des ajustements fins */
+    top: -1px; /* Ajustement pour remonter légèrement le point */
 }
 
 /* Social media icon content container. */
