@@ -1,8 +1,8 @@
-appId: 'ultrapixelmonlauncher'
-productName: 'Ultra Pixelmon Launcher'
+appId: 'cobblemonultraluancher'
+productName: 'Cobblemon Ultra Launcher'
 artifactName: '${productName}-setup-${version}.${ext}'
 
-copyright: 'Copyright © 2018-2024 Ultra Pixelmon'
+copyright: 'Copyright © 2018-2025 Cobblemon Ultra'
 
 asar: true
 compression: 'maximum'

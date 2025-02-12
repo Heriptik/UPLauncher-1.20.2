@@ -1,7 +1,7 @@
 # Custom Language File for Launcher Customizer
 
 [ejs.app]
-title = "Ultra Pixelmon Launcher "
+title = "Cobblemon Ultra Launcher"
 
 [ejs.landing]
 mediaGitHubURL = "https://ultra-pixelmon.xyz/"
@@ -15,6 +15,6 @@ sourceGithubLink = "https://ultra-pixelmon.xyz/"
 supportLink = "https://ultra-pixelmon.xyz/"
 
 [ejs.welcome]
-welcomeHeader = "BIENVENUE SUR ULTRA-PIXELMON 1.20.2"
-welcomeDescription = "Découvrez notre serveur MMORPG moddé basé sur l'univers de Minecraft et Pixelmon. Plus de 900 Pokémon à capturer, un hôtel des ventes, une chasse aux Pokémon PixelHunt et des combats PvP Showdown. Explorez un vaste safari au début de votre aventure, accomplissez des quêtes et remportez des récompenses quotidiennes. Revivez vos meilleurs souvenirs Pokémon au sein d'une communauté multijoueur dynamique."
+welcomeHeader = "BIENVENUE SUR ULTRA-COBBLEMON 1.21.1"
+welcomeDescription = "Découvrez notre serveur MMORPG moddé basé sur l'univers de Minecraft et Cobblemon. Plus de 900 Pokémon à capturer, un hôtel des ventes, une chasse aux Pokémon PixelHunt et des combats PvP Showdown. Explorez un vaste safari au début de votre aventure, accomplissez des quêtes et remportez des récompenses quotidiennes. Revivez vos meilleurs souvenirs Pokémon au sein d'une communauté multijoueur dynamique."
 welcomeDescCTA = ""

@@ -244,7 +244,7 @@ cancelButton = "Retour"
 
 [js.settings.authAccountPopulate]
 username = "Pseudo"
-uuid = "Ultra-Pixelmon UUID"
+uuid = "Ultra-Cobblemon UUID"
 selectAccount = "Séléctionner ?"
 selectedAccount = "Compte séléctionné ✓"
 logout = "Déconnexion"
@@ -285,9 +285,9 @@ errorMessage = "We were unable to authenticate your Microsoft account. Please tr
 okButton = "OK"
 
 [js.uibinder.startup]
-fatalErrorTitle = "Fatal Error: Unable to Load Distribution Index"
-fatalErrorMessage = "A connection could not be established to our servers to download the distribution index. No local copies were available to load. <br><br>The distribution index is an essential file which provides the latest server information. The launcher is unable to start without it. Ensure you are connected to the internet and relaunch the application."
-closeButton = "Close"
+fatalErrorTitle = "Impossible de charger le fichier de Distribution"
+fatalErrorMessage = "Une connexion n'a pas pu être établi au serveur de téléchargement. <br><br>Ce fichier est essentiel pour le lancement du launcher. Veuillez vérifier votre connecion internet et ré-essayer."
+closeButton = "Fermer"
 
 [js.uibinder.validateAccount]
 failedMessageTitle = "Erreur de connexion"
