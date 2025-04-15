@@ -173,7 +173,7 @@ players = "JOUEURS"
 [js.landing.systemScan]
 checking = "Check du système ..."
 noCompatibleJava = "JAVA"
-installJavaMessage = "Pour lancer Minecraft, tu as besoin de Java {major}. <br>Veux tu l'installer ?"
+installJavaMessage = "Java {major} nécessaire pour lancer."
 installJava = "Installer Java"
 installJavaManually = "Ne pas installer"
 javaDownloadPrepare = "Téléchargement de Java..."
@@ -208,7 +208,7 @@ doneEnjoyServer = "Fini. Bon jeu !"
 checkConsoleForDetails = "Please check the console (CTRL + Shift + i) for more details."
 
 [js.landing.news]
-checking = "Checking for News"
+checking = "Chargement "
 
 [js.landing.discord]
 loading = "Loading game.."
@@ -247,7 +247,7 @@ username = "Pseudo"
 uuid = "Ultra-Cobblemon UUID"
 selectAccount = "Séléctionner ?"
 selectedAccount = "Compte séléctionné ✓"
-logout = "Déconnexion"
+logout = "Retirer"
 
 [js.settings.dropinMods]
 removeButton = "Retirer"
