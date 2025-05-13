@@ -2994,19 +2994,20 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Logo image. */
 #image_seal {
-    height: 193px;
+    height: 315px;
     width: auto;
     position: relative;
-    animation: pulse 2s infinite;
+    animation: pulse 5s infinite;
+    top: -32px;
 }
 
 /* Logo container styles. */
 #image_seal_container {
     position: relative;
     height: 70px;
-    width: 70px;
+    width: 140px;
     border-radius: 50%;
-    margin-top: 50px;
+    
 }
 
 /* Animation de pulsation */
@@ -3030,12 +3031,12 @@ input:checked + .toggleSwitchSlider:before {
 /* Agrandir le logo lorsque la fenêtre est en grand */
 @media screen and (min-width: 1200px) {
     #image_seal {
-        height: 340px; /* Ajustez la taille comme vous le souhaitez */
+        height: 470px; /* Ajustez la taille comme vous le souhaitez */
     }
 
     #image_seal_container {
-        height: 100px; /* Ajustez la taille du container */
-        width: 100px;
+        height: 50px; /* Ajustez la taille du container */
+        width: 50px;
     }
 }
 
