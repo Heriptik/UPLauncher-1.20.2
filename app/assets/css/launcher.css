@@ -3042,7 +3042,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Logo container styles w/ update. */
 #image_seal_container[update]{
-    cursor: pointer
+    cursor: normal;
 }
 #image_seal_container[update]:before,
 #image_seal_container[update]:after {

@@ -244,7 +244,7 @@ cancelButton = "Retour"
 
 [js.settings.authAccountPopulate]
 username = "Pseudo"
-uuid = "Ultra-Cobblemon UUID"
+uuid = "Cobblemon-Ultra UUID"
 selectAccount = "Séléctionner ?"
 selectedAccount = "Compte séléctionné ✓"
 logout = "Retirer"

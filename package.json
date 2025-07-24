@@ -1,13 +1,13 @@
 {
   "name": "CobblemonUltra-1.21.1",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "productName": "CobblemonUltra-1.21.1",
   "description": "Launcher Minecraft Cobblemon Ultra Fabric 1.21.1",
   "author": "Pepefab",
   "license": "UNLICENSED",
-  "homepage": "https://ultra-pixelmon.xyz/",
+  "homepage": "https://cobblemon-ultra.fr",
   "bugs": {
-    "url": "https://discord.gg/nEG8fpX"
+    "url": "https://discord.gg/F8wBjb3V"
   },
   "private": true,
   "main": "index.js",

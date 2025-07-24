@@ -4,17 +4,17 @@
 title = "Cobblemon Ultra Launcher"
 
 [ejs.landing]
-mediaGitHubURL = "https://ultra-pixelmon.xyz/"
+mediaGitHubURL = "https://cobblemon-ultra.fr"
 mediaTwitterURL = "#"
-mediaInstagramURL = "https://www.instagram.com/ultrapixelmon/"
+mediaInstagramURL = ""
 mediaYouTubeURL = "#"
 mediaDiscordURL = "https://discord.gg/nEG8fpX"
 
 [ejs.settings]
-sourceGithubLink = "https://ultra-pixelmon.xyz/"
-supportLink = "https://ultra-pixelmon.xyz/"
+sourceGithubLink = "https://cobblemon-ultra.fr"
+supportLink = "https://cobblemon-ultra.fr"
 
 [ejs.welcome]
-welcomeHeader = "BIENVENUE SUR ULTRA-COBBLEMON 1.21.1"
-welcomeDescription = "Découvrez notre serveur MMORPG moddé basé sur l'univers de Minecraft et Cobblemon. Plus de 900 Pokémon à capturer, un hôtel des ventes, une chasse aux Pokémon PixelHunt et des combats PvP Showdown. Explorez un vaste safari au début de votre aventure, accomplissez des quêtes et remportez des récompenses quotidiennes. Revivez vos meilleurs souvenirs Pokémon au sein d'une communauté multijoueur dynamique."
+welcomeHeader = "BIENVENUE SUR COBBLEMON-ULTRA 1.21.1"
+welcomeDescription = "Découvrez notre serveur MMORPG moddé basé sur l'univers de Minecraft et Cobblemon. Plus de 1000 Pokémon à capturer, un hôtel des ventes, une chasse aux Pokémon PixelHunt et des combats PvP. Explorez un vaste safari au début de votre aventure, accomplissez des quêtes et remportez des récompenses quotidiennes. Revivez vos meilleurs souvenirs Pokémon au sein d'une communauté multijoueur dynamique."
 welcomeDescCTA = ""
