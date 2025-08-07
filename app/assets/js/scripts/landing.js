@@ -28,7 +28,7 @@ const {
 }                             = require('helios-core/java')
 
 // Internal Requirements
-const DiscordWrapper          = require('./assets/js/discordwrapper')
+//const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
 
 // Launch Elements
@@ -562,10 +562,7 @@ async function dlAsync(login = true) {
 
         const onLoadComplete = () => {
             toggleLaunchArea(false)
-            if(hasRPC){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.loading'))
-                proc.stdout.on('data', gameStateChange)
-            }
+        
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
@@ -586,16 +583,6 @@ async function dlAsync(login = true) {
             }
         }
 
-        // Listener for Discord RPC.
-        const gameStateChange = function(data){
-            data = data.trim()
-            if(SERVER_JOINED_REGEX.test(data)){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.joined'))
-            } else if(GAME_JOINED_REGEX.test(data)){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.joining'))
-            }
-        }
-
         const gameErrorListener = function(data){
             data = data.trim()
             if(data.indexOf('Could not find or load main class net.minecraft.launchwrapper.Launch') > -1){
@@ -613,18 +600,6 @@ async function dlAsync(login = true) {
             proc.stderr.on('data', gameErrorListener)
 
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
-
-            // Init Discord Hook
-            if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
-                DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
-                hasRPC = true
-                proc.on('close', (code, signal) => {
-                    loggerLaunchSuite.info('Shutting down Discord Rich Presence..')
-                    DiscordWrapper.shutdownRPC()
-                    hasRPC = false
-                    proc = null
-                })
-            }
 
         } catch(err) {
 
