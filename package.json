@@ -1,6 +1,6 @@
 {
   "name": "CobblemonUltra-1.21.1",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "productName": "CobblemonUltra-1.21.1",
   "description": "Launcher Minecraft Cobblemon Ultra Fabric 1.21.1",
   "author": "Pepefab",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",
-    "adm-zip": "^0.5.12",
+    "adm-zip": "^0.6.0",
     "ejs": "^3.1.10",
     "ejs-electron": "^3.0.0",
     "electron-updater": "^6.3.9",
