@@ -1,6 +1,6 @@
 {
   "name": "CobblemonUltra-1.21.1",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "productName": "CobblemonUltra-1.21.1",
   "description": "Launcher Minecraft Cobblemon Ultra Fabric 1.21.1",
   "author": "Pepefab",
@@ -20,7 +20,7 @@
     "lint": "eslint --config .eslintrc.json ."
   },
   "engines": {
-    "node": "20.x.x"
+    "node": ">=20"
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",
