@@ -2661,6 +2661,7 @@ input:checked + .toggleSwitchSlider:before {
     height: 100%;
     width: 33%;
     display: inline-flex;
+    justify-content: center;
 }
 
 /*******************************************************************************
@@ -3219,6 +3220,66 @@ input:checked + .toggleSwitchSlider:before {
     top: -1px; /* Ajustement pour remonter légèrement le point */
 }
 
+/* Update icon next to username. */
+#updateIconContainer {
+    display: none;
+    cursor: pointer;
+    z-index: 10;
+    margin-right: 12px;
+    vertical-align: middle;
+    position: relative;
+}
+#updateIconSVG {
+    width: 22px;
+    height: 22px;
+    fill: #4ade80;
+    filter: drop-shadow(0px 0px 6px rgba(74, 222, 128, 0.6));
+    transition: 0.25s ease;
+    animation: updatePulse 2s ease-in-out infinite;
+}
+#updateIconSVG:hover {
+    fill: #86efac;
+    filter: drop-shadow(0px 0px 10px rgba(74, 222, 128, 0.9));
+    transform: scale(1.2);
+}
+#updateTooltip {
+    visibility: hidden;
+    opacity: 0;
+    width: 100px;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.75);
+    text-align: center;
+    border-radius: 4px;
+    position: absolute;
+    z-index: 1;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    line-height: 20px;
+    white-space: nowrap;
+    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
+}
+#updateTooltip::after {
+    content: " ";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
+}
+#updateIconContainer:hover #updateTooltip {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+@keyframes updatePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
 /* Social media icon content container. */
 #mediaContent {
     position: relative;
@@ -3255,16 +3316,16 @@ input:checked + .toggleSwitchSlider:before {
 /* Social media icon shared styles. */
 .mediaSVG {
     fill: #ffffff;
-    height: 12px;
+    height: 16px;
     transition: 0.25s ease;
     cursor: pointer;
-    height: 12px;
-    width: 25px;
+    height: 16px;
+    width: 33px;
 }
 .mediaSVG:hover,
 .mediaURL:focus .mediaSVG,
 .mediaSVG:active {
-    height: 20px;
+    height: 26px;
 }
 
 /* Social media URL shared styles. */
@@ -3289,12 +3350,12 @@ input:checked + .toggleSwitchSlider:before {
 /* Settings icon colors. */
 #settingsSVG {
     stroke: #ffffff;
-    height: 15px;
+    height: 20px;
 }
 .mediaButton:hover #settingsSVG,
 .mediaButton:focus #settingsSVG,
 .mediaButton:active #settingsSVG {
-    height: 23px;
+    height: 30px;
 }
 
 /* Settings tooltip styles. */
@@ -3398,13 +3459,13 @@ input:checked + .toggleSwitchSlider:before {
 /* Maintains maximum width on the status bar. */
 #server_status_wrapper {
     display: inline-flex;
-    width: 75px;
+    width: 98px;
 }
 
 /* Span which displays the player count of the selected server. */
 #player_count {
     color: #949494;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 900;
     text-shadow: 0px 0px 20px #949494;
     margin-left: 10px;
@@ -3560,7 +3621,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Arrow image which floats above the news button. */
 #newsButtonSVG {
-    height: 11px;
+    height: 14px;
     margin-left: -2px;
     transition: 0.25s ease;
 }
@@ -3571,8 +3632,8 @@ input:checked + .toggleSwitchSlider:before {
     font-weight: 900;
     letter-spacing: 2px;
     text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 11px;
-    line-height: 30px;
+    font-size: 14px;
+    line-height: 39px;
     display: flex;
     transition: 0.25s ease;
 }
@@ -3586,33 +3647,45 @@ input:checked + .toggleSwitchSlider:before {
     position: relative;
     top: 25px;
     display: inline-flex;
+    align-items: center;
 }
 
 /* The launch button. */
 #launch_button {
-    background: none;
+    background: #fed045;
     border: none;
     cursor: pointer;
     font-weight: 900;
     letter-spacing: 2px;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 20px;
-    padding: 0px;
-    transition: 0.25s ease;
+    color: #1a1a1a;
+    text-shadow: none;
+    font-size: 16px;
+    padding: 8px 30px;
+    border-radius: 20px;
+    box-shadow: 0px 4px 15px rgba(254, 208, 69, 0.4);
+    transition: all 0.25s ease;
     outline: none;
 }
 #launch_button:hover,
 #launch_button:focus {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff;
+    background: #ffe066;
+    box-shadow: 0px 6px 25px rgba(254, 208, 69, 0.6);
+    transform: translateY(-2px);
+    text-shadow: none;
 }
 #launch_button:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+    background: #d4a017;
+    color: #1a1a1a;
+    box-shadow: 0px 2px 8px rgba(254, 208, 69, 0.3);
+    transform: translateY(1px);
+    text-shadow: none;
 }
 #launch_button:disabled {
-    color: #c7c7c7;
+    background: #8a8a6a;
+    color: #555;
     cursor: default;
     pointer-events: none;
+    box-shadow: none;
 }
 
 /* Launch details main container, hidden until launch processing begins. */
@@ -3620,21 +3693,32 @@ input:checked + .toggleSwitchSlider:before {
     position: relative;
     top: 25px;
     display: none;
+    background: #fed045;
+    border-radius: 20px;
+    padding: 8px 20px;
+    box-shadow: 0px 4px 15px rgba(254, 208, 69, 0.4);
+    align-items: center;
+    gap: 10px;
 }
- 
+#launch_details .bot_divider {
+    display: none;
+}
+
 /* Left side of launch details container, displays percentage and a divider. */
 #launch_details_left {
     display: flex;
+    align-items: center;
 }
 
 /* Span which displays percentage complete. */
 #launch_progress_label {
     font-weight: 900;
     letter-spacing: 1px;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 20px;
-    min-width: 53.21px;
-    max-width: 53.21px;
+    color: #1a1a1a;
+    text-shadow: none;
+    font-size: 14px;
+    min-width: 40px;
+    max-width: 40px;
     text-align: right;
 }
 
@@ -3651,9 +3735,11 @@ input:checked + .toggleSwitchSlider:before {
     border: none;
     outline: none;
     cursor: pointer;
-    line-height: 24px;
+    line-height: 20px;
     padding: 0px;
     transition: 0.25s ease;
+    font-size: 9px;
+    white-space: nowrap;
 }
 #server_selection_button:hover,
 #server_selection_button:focus {
@@ -3667,19 +3753,23 @@ input:checked + .toggleSwitchSlider:before {
 /* Progress bar styles. */
 #launch_progress[value] {
     height: 3px;
-    width: 265px;
+    width: 150px;
     -webkit-appearance: none;
+    border-radius: 3px;
 }
 #launch_progress[value]::-webkit-progress-bar {
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
 }
 #launch_progress[value]::-webkit-progress-value {
-    background-color: #fff;
+    background-color: #1a1a1a;
+    border-radius: 3px;
 }
 
 /* Span which displays information about the status of the launch process. */
 #launch_details_text {
-    font-size: 11px;
+    font-size: 9px;
+    color: #1a1a1a;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;

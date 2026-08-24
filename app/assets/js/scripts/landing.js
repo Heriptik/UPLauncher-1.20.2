@@ -91,11 +91,21 @@ function setDownloadPercentage(percent){
 
 /**
  * Enable or disable the launch button.
- * 
+ *
  * @param {boolean} val True to enable, false to disable.
  */
 function setLaunchEnabled(val){
     document.getElementById('launch_button').disabled = !val
+}
+
+/**
+ * Disable the launch button for 10 seconds after game launch.
+ */
+function disableLaunchTemporarily(){
+    setLaunchEnabled(false)
+    setTimeout(() => {
+        setLaunchEnabled(true)
+    }, 15000)
 }
 
 // Bind launch button
@@ -152,7 +162,9 @@ function updateSelectedAccount(authUser){
             document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/avatar/${authUser.displayName}')`
         }
     }
-    user_text.innerHTML = username
+    const updateIcon = document.getElementById('updateIconContainer')
+    const iconHTML = updateIcon ? updateIcon.outerHTML : ''
+    user_text.innerHTML = iconHTML + username
 }
 updateSelectedAccount(ConfigManager.getSelectedAccount())
 
@@ -443,7 +455,7 @@ let hasRPC = false
 // Change this if your server uses something different.
 const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
-const MIN_LINGER = 5000
+const MIN_LINGER = 10000
 
 async function dlAsync(login = true) {
 
@@ -560,18 +572,21 @@ async function dlAsync(login = true) {
         // const SERVER_JOINED_REGEX = /\[.+\]: \[CHAT\] [a-zA-Z0-9_]{1,16} joined the game/
         const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
 
+        let launchDotsInterval = null
+
         const onLoadComplete = () => {
+            if(launchDotsInterval) {
+                clearInterval(launchDotsInterval)
+                launchDotsInterval = null
+            }
+            setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
             toggleLaunchArea(false)
-        
+            disableLaunchTemporarily()
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
         const start = Date.now()
 
-        // Attach a temporary listener to the client output.
-        // Will wait for a certain bit of text meaning that
-        // the client application has started, and we can hide
-        // the progress bar stuff.
         const tempListener = function(data){
             if(GAME_LAUNCH_REGEX.test(data.trim())){
                 const diff = Date.now()-start
@@ -599,7 +614,18 @@ async function dlAsync(login = true) {
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
 
-            setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
+            // Animated dots on launch text
+            const launchText = Lang.queryJS('landing.dlAsync.launchingGame')
+            let launchDotStr = ''
+            setLaunchDetails(launchText)
+            launchDotsInterval = setInterval(() => {
+                if(launchDotStr.length >= 3){
+                    launchDotStr = ''
+                } else {
+                    launchDotStr += '.'
+                }
+                setLaunchDetails(launchText + launchDotStr)
+            }, 750)
 
         } catch(err) {
 
