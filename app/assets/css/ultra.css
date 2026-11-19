@@ -1,0 +1,2225 @@
+/*******************************************************************************
+ *                                                                             *
+ * Cobblemon Ultra — design "Dock flottant"                                    *
+ * Loaded after launcher.css. The window is a fixed 1280 x 720.                *
+ *                                                                             *
+ ******************************************************************************/
+
+@font-face {
+    font-family: 'Sora';
+    src: url('../fonts/Sora-Variable.ttf');
+    font-weight: 100 800;
+}
+
+:root {
+    --ul-bg: #0A1024;
+    --ul-panel: rgba(10, 16, 36, 0.88);
+    --ul-panel-solid: rgba(10, 16, 36, 0.96);
+    --ul-dim: rgba(6, 10, 26, 0.82);
+    --ul-line: rgba(255, 255, 255, 0.14);
+    --ul-soft: rgba(255, 255, 255, 0.08);
+    --ul-text: #ffffff;
+    --ul-muted: #C5CEE8;
+    --ul-body: #D5DCF2;
+    --ul-accent: #3FD0F5;
+    --ul-accent-soft: #7FE3FF;
+    --ul-ink: #06122B;
+    --ul-warn: #F7A823;
+    --ul-danger: #E5383B;
+    --ul-ok: #5BE38A;
+    --ul-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* * *
+* Base
+* * */
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+body {
+    background: var(--ul-bg);
+    -webkit-user-select: none;
+    user-select: none;
+}
+body, button, input {
+    font-family: 'Sora', 'Avenir Book', system-ui, sans-serif;
+    color: var(--ul-text);
+}
+button {
+    transition: filter 0.15s ease, transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+button:not(:disabled):hover {
+    filter: brightness(1.15);
+}
+button:not(:disabled):active {
+    transform: scale(0.98);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--ul-accent-soft);
+    outline-offset: 2px;
+}
+a {
+    color: var(--ul-accent-soft);
+}
+*::-webkit-scrollbar {
+    width: 6px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+/* Shared keyframes. */
+@keyframes ulEnterUp    { from { opacity: 0; translate: 0 36px; }  to { opacity: 1; translate: 0 0; } }
+@keyframes ulEnterLeft  { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes ulEnterRight { from { opacity: 0; translate: 40px 0; }  to { opacity: 1; translate: 0 0; } }
+@keyframes ulFadeUp     { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ulFadeOut    { to { opacity: 0; } }
+@keyframes ulHide       { from { opacity: 1; } to { opacity: 0; } }
+@keyframes ulShow       { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ulPulse      { 0%, 100% { box-shadow: 0 0 0 0 rgba(247, 168, 35, 0.7); } 50% { box-shadow: 0 0 0 7px rgba(247, 168, 35, 0); } }
+@keyframes ulShake      { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+@keyframes ulSpin       { to { transform: rotate(360deg); } }
+
+/* Tooltips. */
+.ulTip {
+    position: relative;
+}
+.ulTip::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    translate: -50% -4px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: var(--ul-panel-solid);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, translate 0.15s ease;
+    z-index: 5;
+}
+.ulTip:hover::after,
+.ulTip:focus-visible::after {
+    opacity: 1;
+    translate: -50% 0;
+}
+.ulTipUp::after {
+    top: auto;
+    bottom: calc(100% + 12px);
+}
+
+/* * *
+* Background
+* * */
+
+#ulBg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transform: scale(1.12);
+    filter: blur(10px);
+    transition: transform 1.8s var(--ul-ease), filter 1.4s ease, opacity 0.6s ease;
+    z-index: 1;
+}
+body.ul-booted #ulBg {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+}
+#ulScrim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(180deg, rgba(6, 10, 26, 0.62) 0%, rgba(6, 10, 26, 0) 30%),
+        linear-gradient(0deg, rgba(6, 10, 26, 0.78) 0%, rgba(6, 10, 26, 0) 46%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* * *
+* Main container
+* * */
+
+#main {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+#main > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* * *
+* Frame (drag strip + floating box)
+* * */
+
+#frameBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 28px;
+    z-index: 20;
+    -webkit-app-region: drag;
+}
+#frameBox {
+    position: fixed;
+    top: 28px;
+    right: 32px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    background: rgba(10, 16, 36, 0.72);
+    border: 1px solid var(--ul-line);
+    border-radius: 14px;
+    -webkit-app-region: no-drag;
+}
+/* While the news window is open the box sits underneath it. */
+body[news] #frameBox {
+    z-index: 5;
+}
+.frameBoxItem {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    outline: none;
+    transition: background-color 0.15s ease;
+}
+.frameBoxItem:hover,
+.frameBoxItem:focus-visible {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+.frameBoxItem svg {
+    fill: currentColor;
+}
+.frameBoxItem .frameStroke {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.frameBoxDivider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.25);
+}
+#frameButton_close:hover,
+#frameButton_close:focus-visible {
+    background-color: var(--ul-danger);
+    filter: none;
+}
+
+/* * *
+* Logo (shine + sparkles)
+* * */
+
+/* The launcher renders without GPU acceleration, so a running animation
+   costs CPU for as long as it runs. The logo therefore only animates in
+   short bursts: uicore.js adds .ul-sparkle for a few seconds at a time. */
+@keyframes ulLogoShine { from { transform: translateX(-1152px); } to { transform: translateX(432px); } }
+@keyframes ulLogoSpark {
+    0%   { transform: scale(0) rotate(0deg);      opacity: 0; }
+    38%  { transform: scale(1.15) rotate(40deg);  opacity: 1; }
+    62%  { transform: scale(0.8) rotate(60deg);   opacity: 1; }
+    100% { transform: scale(0) rotate(110deg);    opacity: 0; }
+}
+
+.ulLogo {
+    position: relative;
+    width: 480px;
+    height: 107px;
+}
+.ulLogo > img {
+    display: block;
+    width: 480px;
+    height: 107px;
+    /* On the image only, so the animated children never redraw the shadow. */
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+}
+.ulLogoShine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 480px;
+    height: 107px;
+    -webkit-mask-image: url('../images/logo.png');
+    mask-image: url('../images/logo.png');
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    overflow: hidden;
+}
+.ulLogoShine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1200px;
+    height: 100%;
+    background-image: linear-gradient(105deg, rgba(255, 255, 255, 0) 42%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 58%);
+    transform: translateX(-1152px);
+}
+.ulLogo.ul-sparkle .ulLogoShine::before {
+    animation: ulLogoShine 1.3s ease-in-out both;
+}
+.ulLogoSpark {
+    position: absolute;
+    transform: scale(0);
+    opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
+}
+.ulLogo.ul-sparkle .ulLogoSpark {
+    animation: ulLogoSpark 0.95s ease-in-out both;
+}
+.ulLogo .ulLogoSpark:nth-of-type(1) { left: -12px; top: -10px; width: 28px; height: 28px; fill: #ffffff; animation-delay: 0.1s; }
+.ulLogo .ulLogoSpark:nth-of-type(2) { left: 62px;  top: 34px;  width: 13px; height: 13px; fill: #9FEFFF; animation-delay: 1.6s; }
+.ulLogo .ulLogoSpark:nth-of-type(3) { left: 112px; top: 74px;  width: 18px; height: 18px; fill: #FFE27A; animation-delay: 0.8s; }
+.ulLogo .ulLogoSpark:nth-of-type(4) { left: 214px; top: -16px; width: 22px; height: 22px; fill: #9FEFFF; animation-delay: 2.2s; }
+.ulLogo .ulLogoSpark:nth-of-type(5) { left: 328px; top: 80px;  width: 26px; height: 26px; fill: #ffffff; animation-delay: 0.4s; }
+.ulLogo .ulLogoSpark:nth-of-type(6) { left: 398px; top: 40px;  width: 14px; height: 14px; fill: #ffffff; animation-delay: 2.6s; }
+.ulLogo .ulLogoSpark:nth-of-type(7) { left: 456px; top: 0px;   width: 30px; height: 30px; fill: #FFE27A; animation-delay: 1.2s; }
+
+/* * *
+* Loading screen (splash)
+* * */
+
+@keyframes ulSplashMove { to { translate: -300px -257px; scale: 1.25; } }
+@keyframes ulSplashBar {
+    0%   { left: -40%; width: 40%; }
+    60%  { left: 100%; width: 40%; }
+    100% { left: 100%; width: 40%; }
+}
+
+#loadingContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+}
+#loadingBackdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--ul-bg);
+}
+#loadingLogo {
+    position: absolute;
+    left: 400px;
+    top: 306px;
+}
+#loadingBar {
+    position: absolute;
+    left: 520px;
+    top: 456px;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+#loadingBarTrack {
+    position: relative;
+    width: 240px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+}
+#loadingBarFill {
+    position: absolute;
+    top: 0;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ul-accent);
+    animation: ulSplashBar 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+#loadingText {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--ul-muted);
+}
+
+/* Mandatory launcher update: covers everything except the window buttons. */
+#updateGate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 40;
+    background: var(--ul-bg);
+    animation: ulShow 0.35s ease both;
+}
+body[ul-updating] #frameBar,
+body[ul-updating] #frameBox {
+    z-index: 45;
+}
+body[ul-updating] #frameBox .mediaURL,
+body[ul-updating] #frameBox .frameBoxDivider {
+    display: none;
+}
+#updateGateLogo {
+    position: absolute;
+    left: 400px;
+    top: 250px;
+}
+#updateGateBody {
+    position: absolute;
+    left: 390px;
+    top: 404px;
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+#updateGateTitle {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+}
+#updateGateText {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+#updateGateTrack {
+    margin-top: 20px;
+    width: 360px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+}
+#updateGateFill {
+    width: 0;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--ul-accent);
+    transition: width 0.3s ease;
+}
+#updateGateHint {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--ul-muted);
+    opacity: 0.75;
+}
+
+/* Leaving the splash: the logo glides to its place on the home screen. */
+#loadingContainer.ul-out {
+    pointer-events: none;
+}
+#loadingContainer.ul-out #loadingBackdrop {
+    animation: ulFadeOut 0.7s ease both;
+}
+#loadingContainer.ul-out #loadingBar {
+    animation: ulFadeOut 0.2s ease both;
+}
+#loadingContainer.ul-out.to-land #loadingLogo {
+    animation: ulSplashMove 0.8s cubic-bezier(0.65, 0, 0.2, 1) both, ulHide 0.01s 0.8s both;
+}
+#loadingContainer.ul-out.to-fade #loadingLogo {
+    animation: ulFadeOut 0.4s ease both;
+}
+
+/* * *
+* Welcome view
+* * */
+
+#welcomeContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 10, 26, 0.55);
+}
+#welcomeContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    text-align: center;
+}
+#welcomeHeader {
+    margin-top: 14px;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+#welcomeDescription {
+    max-width: 720px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ul-body);
+}
+#welcomeDescCTA:empty {
+    display: none;
+}
+#welcomeButton {
+    margin-top: 10px;
+    width: 260px;
+    height: 56px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    outline: none;
+}
+body.ul-intro #welcomeContent > * {
+    animation: ulEnterUp 0.8s var(--ul-ease) both;
+}
+body.ul-intro #welcomeContent > *:nth-child(1) { animation-delay: 0.10s; }
+body.ul-intro #welcomeContent > *:nth-child(2) { animation-delay: 0.22s; }
+body.ul-intro #welcomeContent > *:nth-child(3) { animation-delay: 0.34s; }
+body.ul-intro #welcomeContent > *:nth-child(4) { animation-delay: 0.46s; }
+body.ul-intro #welcomeContent > *:nth-child(5) { animation-delay: 0.46s; }
+
+/* * *
+* Login view (pseudo only)
+* * */
+
+#loginContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 10, 26, 0.55);
+}
+#loginContent {
+    width: 440px;
+    box-sizing: border-box;
+    padding: 36px;
+    background: var(--ul-panel-solid);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+body.ul-intro #loginContent {
+    animation: ulEnterUp 0.8s var(--ul-ease) 0.2s both;
+}
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+#loginTitle {
+    font-size: 26px;
+    font-weight: 800;
+}
+#loginSubheader {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ul-muted);
+}
+.loginFieldContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-top: 24px;
+}
+.loginFieldLabel {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.loginField {
+    height: 52px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.loginField::placeholder {
+    color: rgba(197, 206, 232, 0.6);
+    font-weight: 400;
+}
+.loginField:focus {
+    border-color: var(--ul-accent);
+    background: rgba(255, 255, 255, 0.09);
+}
+.loginField:disabled {
+    opacity: 0.6;
+}
+.loginErrorSpan {
+    min-height: 18px;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #FF9B9B;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.loginErrorSpan.shake {
+    animation: ulShake 0.4s ease;
+}
+#loginButton {
+    margin-top: 10px;
+    height: 52px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    outline: none;
+}
+#loginButton:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+#loginButton[loading] {
+    opacity: 0.8;
+    cursor: progress;
+}
+#loginButtonContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+/* Legacy spinner elements are still toggled by login.js. */
+#loginButton .circle-loader,
+#loginButton .checkmark {
+    display: none !important;
+}
+#loginCancelContainer {
+    margin-top: 6px;
+    justify-content: center;
+}
+#loginCancelButton {
+    width: 100%;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ul-muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+}
+#loginCancelButton:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+#loginDisclaimer {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 11px;
+    line-height: 1.6;
+    color: rgba(197, 206, 232, 0.8);
+}
+#loginDisclaimer p {
+    margin: 0;
+}
+
+/* Unused Microsoft views, kept for the scripts that reference them. */
+#loginOptionsContainer,
+#waitingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ul-dim);
+}
+#loginOptionsContent,
+#waitingContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    background: var(--ul-panel-solid);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+}
+.loginOptionsMainContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+.loginOptionsMainContent h2,
+#waitingTextContainer h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+}
+.loginOptionButton {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+}
+#loginOptionCancelButton {
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ul-muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+.waitingSpinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--ul-accent);
+    animation: ulSpin 0.9s linear infinite;
+}
+
+/* * *
+* Landing view
+* * */
+
+#landingContainer {
+    display: block;
+}
+#landingLogo {
+    position: absolute;
+    left: 40px;
+    top: 36px;
+    width: 480px;
+    height: 107px;
+    transform: scale(1.25);
+    transform-origin: left top;
+    pointer-events: none;
+}
+/* During the opening sequence the splash logo lands here first. */
+body.ul-intro.ul-start-landing #landingLogo {
+    animation: ulShow 0.01s 0.8s both;
+}
+
+/* News card. */
+#newsButton {
+    position: absolute;
+    left: 40px;
+    bottom: 148px;
+    width: 380px;
+    box-sizing: border-box;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    background: var(--ul-panel);
+    border: 1px solid var(--ul-line);
+    border-radius: 18px;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+}
+#newsCardImage {
+    flex-shrink: 0;
+    width: 112px;
+    height: 72px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center;
+}
+#newsCardImage:not([loaded]) {
+    display: none;
+}
+#newsCardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    padding: 2px 6px;
+}
+#newsButtonText {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--ul-accent-soft);
+}
+#newsCardTitle {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+#newsCardMore {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+#newsButton {
+    transition: border-color 0.4s ease, box-shadow 0.4s ease, filter 0.15s ease, transform 0.15s ease;
+}
+/* Unread article: orange outline, glow and a "NOUVEAU" badge. */
+#newsButton[unread] {
+    border-color: var(--ul-warn);
+    box-shadow: 0 0 0 1px var(--ul-warn), 0 0 28px rgba(247, 168, 35, 0.45), 0 14px 34px rgba(0, 0, 0, 0.35);
+}
+#newsButton[unread] #newsButtonText,
+#newsButton[unread] #newsCardMore {
+    color: var(--ul-warn);
+}
+#newsButtonAlert {
+    position: absolute;
+    top: -12px;
+    right: 14px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: var(--ul-warn);
+    color: var(--ul-ink);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 24px;
+    animation: ulPulse 1.8s ease-in-out 4;
+}
+
+/* Launcher update pill. */
+#updateIconContainer {
+    position: absolute;
+    right: 40px;
+    bottom: 148px;
+    height: 44px;
+    padding: 0 18px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-radius: 22px;
+    background: var(--ul-warn);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    outline: none;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+#updateIconSVG {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Floating dock. */
+#landingDock {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    bottom: 36px;
+    height: 92px;
+    box-sizing: border-box;
+    padding: 0 16px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--ul-panel);
+    border: 1px solid var(--ul-line);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+body.ul-intro #landingDock          { animation: ulEnterUp 0.8s var(--ul-ease) 0.35s both; }
+body.ul-intro #newsButton           { animation: ulEnterLeft 0.8s var(--ul-ease) 0.55s both; }
+body.ul-intro #updateIconContainer  { animation: ulEnterRight 0.8s var(--ul-ease) 0.65s both; }
+
+.dockDivider {
+    flex-shrink: 0;
+    width: 1px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+/* Account button (skin head + pseudo). */
+#avatarOverlay {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 72px;
+    padding: 0 16px 0 8px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+}
+#avatarOverlay:hover,
+#avatarOverlay:focus-visible,
+#serverStatusButton:hover,
+#serverStatusButton:focus-visible {
+    background-color: var(--ul-soft);
+}
+#avatarContainer {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background-color: #1B2750;
+    background-size: cover;
+    background-position: center;
+    image-rendering: pixelated;
+}
+#user_content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+#user_text {
+    font-size: 17px;
+    font-weight: 700;
+    max-width: 190px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#user_subtext {
+    font-size: 12px;
+    color: var(--ul-muted);
+}
+
+/* Server status (opens the server selection). */
+#serverStatusButton {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 72px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+}
+#serverStatusDot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ul-ok);
+}
+#serverStatusButton[offline] #serverStatusDot {
+    background: #FF6B6B;
+}
+#server_status_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+#landingPlayerLabel {
+    font-size: 15px;
+    font-weight: 600;
+}
+#player_count {
+    font-size: 12px;
+    color: var(--ul-muted);
+}
+
+/* Progress / status area. */
+#launchStatus {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 6px;
+}
+#launch_ready {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ul-muted);
+    white-space: nowrap;
+}
+#launch_details {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+#launch_details_top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+#launch_details_text {
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#launch_progress_label {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ul-accent-soft);
+}
+#launch_progress,
+#settingsUpdateProgress {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 6px;
+    border: 0;
+    border-radius: 3px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.16);
+}
+#launch_progress::-webkit-progress-bar,
+#settingsUpdateProgress::-webkit-progress-bar {
+    background: rgba(255, 255, 255, 0.16);
+}
+#launch_progress::-webkit-progress-value,
+#settingsUpdateProgress::-webkit-progress-value {
+    background: var(--ul-accent);
+    border-radius: 3px;
+    transition: width 0.2s ease;
+}
+
+/* Settings + play. */
+#launch_content {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+#settingsMediaButton {
+    width: 60px;
+    height: 60px;
+    border: 1px solid var(--ul-line);
+    border-radius: 16px;
+    background: var(--ul-soft);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    outline: none;
+}
+#settingsMediaButton svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+#launch_button {
+    width: 250px;
+    height: 60px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    outline: none;
+}
+#launch_button svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+#launch_button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+/* Greyed through colours, not opacity, so its tooltip stays fully visible. */
+#launch_button[launching] {
+    background: rgba(63, 208, 245, 0.30);
+    color: rgba(255, 255, 255, 0.55);
+    cursor: default;
+    filter: none;
+    transform: none;
+}
+.ulTip:not([data-tip])::after {
+    display: none;
+}
+#server_selection_button,
+#mojangStatusWrapper {
+    display: none !important;
+}
+
+/* * *
+* News window
+* * */
+
+#newsContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Hidden by an inline style; jQuery fades it in as a flex box. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 10, 26, 0.78);
+    z-index: 5;
+}
+#newsWindow {
+    position: relative;
+    width: 1160px;
+    height: 664px;
+    box-sizing: border-box;
+    padding: 26px 32px 18px 32px;
+    display: flex;
+    flex-direction: column;
+    background: var(--ul-panel-solid);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    animation: ulFadeUp 0.35s ease both;
+}
+#newsClose {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--ul-soft);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    outline: none;
+    z-index: 2;
+}
+#newsClose svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+#newsContent {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+#newsStatusContent {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 60px 16px 0;
+}
+#newsHeaderLabel {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--ul-accent-soft);
+}
+#newsArticleTitle {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+    text-decoration: none;
+    outline: none;
+}
+#newsMetaContainer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ul-muted);
+}
+#newsMetaContainer > *:not(:first-child)::before {
+    content: '·';
+    margin-right: 6px;
+    color: var(--ul-muted);
+}
+#newsArticleComments {
+    display: none;
+}
+#newsArticleContainer {
+    flex-grow: 1;
+    min-height: 0;
+    display: flex;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+#newsArticleContent {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+}
+#newsArticleContentScrollable {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 12px 24px 12px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--ul-body);
+    -webkit-user-select: text;
+    user-select: text;
+}
+.newsArticleSpacerTop,
+.newsArticleSpacerBot {
+    height: 0;
+}
+
+/* Article content, as written on the website. */
+#newsArticleContentWrapper > * {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#newsArticleContentWrapper h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.25;
+    margin-top: 8px;
+    margin-bottom: 14px;
+}
+#newsArticleContentWrapper h2 {
+    font-size: 21px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.3;
+    margin-top: 34px;
+    margin-bottom: 12px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+#newsArticleContentWrapper h3,
+#newsArticleContentWrapper h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ul-accent-soft);
+    margin-top: 22px;
+    margin-bottom: 8px;
+}
+#newsArticleContentWrapper p {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+#newsArticleContentWrapper ul,
+#newsArticleContentWrapper ol {
+    margin-top: 0;
+    margin-bottom: 14px;
+    padding-left: 22px;
+    box-sizing: border-box;
+}
+#newsArticleContentWrapper li {
+    margin-bottom: 6px;
+}
+#newsArticleContentWrapper li > p {
+    margin-bottom: 4px;
+}
+#newsArticleContentWrapper img,
+#newsArticleContentWrapper video,
+#newsArticleContentWrapper iframe {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    margin: 16px auto;
+}
+#newsArticleContentWrapper blockquote {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: rgba(63, 208, 245, 0.10);
+    border: 1px solid rgba(63, 208, 245, 0.35);
+    color: #ffffff;
+    box-sizing: border-box;
+}
+#newsArticleContentWrapper blockquote > *:last-child {
+    margin-bottom: 0;
+}
+#newsArticleContentWrapper a {
+    color: var(--ul-accent-soft);
+}
+#newsArticleContentWrapper hr {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+#newsArticleContentWrapper table {
+    border-collapse: collapse;
+    margin-bottom: 14px;
+}
+#newsArticleContentWrapper td,
+#newsArticleContentWrapper th {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 8px 12px;
+}
+#newsArticleContentWrapper code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 13px;
+}
+
+/* Article navigation. */
+#newsNavigationContainer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+#newsNavigateLeft,
+#newsNavigateRight {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--ul-soft);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    outline: none;
+}
+#newsNavigateLeft svg,
+#newsNavigateRight svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+#newsNavigationStatus {
+    min-width: 60px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+
+/* Loading / error states of the news window. */
+#newsErrorContainer {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#newsErrorLoading,
+#newsErrorFailed,
+#newsErrorNone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+.newsErrorContent {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+#newsErrorRetry {
+    height: 48px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 800;
+    outline: none;
+}
+
+/* * *
+* Overlay (alerts, server selection)
+* * */
+
+#overlayContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ul-dim);
+}
+#overlayContent,
+#serverSelectContent,
+#accountSelectContent {
+    width: 500px;
+    box-sizing: border-box;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--ul-panel-solid);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+#overlayContent::before {
+    content: '!';
+    align-self: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--ul-warn);
+    color: var(--ul-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+}
+#overlayContent[error]::before {
+    background: #FFB3B3;
+}
+#overlayTitle,
+#serverSelectHeader,
+#accountSelectHeader {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-align: center;
+}
+#overlayDesc {
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--ul-body);
+    -webkit-user-select: text;
+    user-select: text;
+}
+#overlayActionContainer,
+#serverSelectActions,
+#accountSelectActions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#overlayAcknowledge,
+#serverSelectConfirm,
+#accountSelectConfirm {
+    height: 52px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    outline: none;
+}
+#overlayDismissWrapper,
+#serverSelectCancelWrapper,
+#accountSelectCancelWrapper {
+    display: flex;
+    justify-content: center;
+}
+#overlayDismiss,
+#serverSelectCancel,
+#accountSelectCancel {
+    width: 100%;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ul-muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+}
+#serverSelectList,
+#accountSelectList {
+    max-height: 320px;
+    overflow-y: auto;
+}
+#serverSelectListScrollable,
+#accountSelectListScrollable {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 2px;
+}
+
+/* Server / account listings (also used in the settings tabs). */
+.serverListing,
+.accountListing {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid var(--ul-line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+}
+.serverListing[selected],
+.accountListing[selected] {
+    border-color: var(--ul-accent);
+    background: rgba(63, 208, 245, 0.12);
+    cursor: default;
+}
+.serverListingImg,
+.accountListing img {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+.serverListingDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.serverListingName,
+.accountListingName {
+    font-size: 16px;
+    font-weight: 700;
+}
+.serverListingDescription {
+    font-size: 13px;
+    color: var(--ul-muted);
+}
+.serverListingInfo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+.serverListingVersion,
+.serverListingRevision {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 11px;
+    font-weight: 700;
+}
+.serverListingStarWrapper {
+    display: flex;
+    align-items: center;
+}
+.serverListingStarWrapper svg {
+    width: 16px;
+    height: 16px;
+}
+.serverListingStarTooltip {
+    display: none;
+}
+
+/* * *
+* Settings view (overrides of launcher.css)
+* * */
+
+#settingsContainer {
+    display: flex;
+    background-color: rgba(6, 10, 26, 0.86);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+#settingsContainer:before {
+    display: none;
+}
+#settingsContainerLeft {
+    width: 280px;
+    flex-shrink: 0;
+    padding: 44px 20px 36px 40px;
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+}
+#settingsNavHeader {
+    height: auto;
+    justify-content: flex-start;
+    margin-bottom: 26px;
+}
+#settingsNavHeaderText {
+    font-size: 24px;
+    font-weight: 800;
+}
+#settingsNavItemsContainer {
+    height: auto;
+    flex-grow: 1;
+    justify-content: stretch;
+}
+#settingsNavItemsContent {
+    width: 100%;
+    gap: 4px;
+}
+.settingsNavItem,
+#settingsNavDone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    margin: 0;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ul-muted);
+    text-shadow: none !important;
+}
+.settingsNavItem:hover,
+.settingsNavItem:focus-visible {
+    color: #ffffff;
+    background: var(--ul-soft);
+}
+.settingsNavItem[selected] {
+    color: #ffffff;
+    background: rgba(63, 208, 245, 0.16);
+}
+.settingsNavSpacer {
+    display: none;
+}
+/* Dot shown when a launcher update is waiting. */
+#settingsNavUpdate[update]::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ul-warn);
+    animation: ulPulse 1.8s ease-in-out 4;
+}
+#settingsNavContentBottom {
+    position: static;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+}
+.settingsNavDivider {
+    width: 100%;
+    margin: 0 0 12px 0;
+    background: rgba(255, 255, 255, 0.12);
+}
+#settingsNavDone {
+    width: 100%;
+    color: #ffffff;
+    background: var(--ul-soft);
+    border: 1px solid var(--ul-line);
+    justify-content: center;
+}
+#settingsNavDone:disabled {
+    opacity: 0.5;
+}
+
+#settingsContainerRight {
+    width: auto;
+    flex-grow: 1;
+    min-width: 0;
+}
+.settingsTab {
+    box-sizing: border-box;
+    padding: 0 290px 0 36px;
+}
+.settingsTab::-webkit-scrollbar {
+    width: 6px;
+}
+.settingsTab::-webkit-scrollbar-thumb {
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.28);
+}
+.settingsTab > *:first-child {
+    margin-top: 44px;
+}
+.settingsTab > *:last-child {
+    margin-bottom: 60px;
+}
+.settingsTabHeader {
+    gap: 6px;
+    margin-bottom: 26px;
+}
+.settingsTabHeaderText {
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 800;
+}
+.settingsTabHeaderDesc {
+    font-size: 14px;
+    color: var(--ul-muted);
+}
+
+/* Every block takes the full column. */
+.settingsSelServContainer,
+.settingsFieldContainer,
+.settingsDivider,
+.settingsFileSelContainer,
+.settingsAuthAccountTypeContainer,
+#settingsGameResolutionContainer,
+#settingsModsContainer,
+#settingsMemoryContainer,
+#settingsJVMOptsContainer,
+#settingsAboutCurrentContainer,
+.settingsChangelogContainer,
+#settingsUpdateStatusContainer {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Shared surfaces. */
+.settingsSelServContainer,
+.settingsAuthAccount,
+#settingsReqModsContent,
+#settingsOptModsContent,
+#settingsDropinModsContent,
+#settingsAboutCurrentContainer,
+.settingsChangelogContainer,
+#settingsUpdateStatusContainer {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--ul-line);
+    border-radius: 16px;
+}
+#settingsReqModsContent:empty,
+#settingsOptModsContent:empty,
+#settingsDropinModsContent:empty {
+    display: none;
+}
+
+/* Titles and descriptions. */
+.settingsFieldTitle,
+.settingsFileSelTitle,
+#settingsMemoryTitle,
+#settingsJVMOptsTitle,
+.settingsModsHeader,
+.settingsMemoryHeader {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+}
+.settingsFieldDesc,
+.settingsFileSelDesc,
+#settingsMemoryDesc,
+#settingsJVMOptsDesc,
+#settingsShaderpackDesc,
+#settingsJavaExecDetails {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--ul-muted);
+    width: 100%;
+}
+.settingsFileSelDesc strong {
+    font-family: inherit;
+    font-weight: 700;
+}
+#settingsJavaExecDetails {
+    margin-bottom: 8px;
+}
+
+/* Separators. */
+.settingsFieldContainer,
+.settingsFileSelContainer,
+#settingsGameResolutionContainer,
+#settingsMemoryContainer,
+.settingsModsHeader,
+#settingsMemoryTitle {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Inputs. */
+#settingsContainer input[type=number],
+#settingsContainer input[type=text] {
+    font-family: inherit;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+}
+#settingsContainer input[type=number]:focus,
+#settingsContainer input[type=text]:focus {
+    border-color: var(--ul-accent);
+}
+#settingsGameWidth,
+#settingsGameHeight {
+    width: 96px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 12px;
+}
+#settingsGameResolutionCross {
+    color: var(--ul-muted);
+}
+
+/* Toggle switches. */
+.toggleSwitch {
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+}
+.toggleSwitchSlider {
+    background-color: rgba(255, 255, 255, 0.22);
+    border: 0;
+}
+.toggleSwitchSlider:before {
+    width: 22px;
+    height: 22px;
+    left: 4px;
+    bottom: 4px;
+    box-shadow: none;
+}
+input:checked + .toggleSwitchSlider {
+    background-color: var(--ul-accent);
+    border: 0;
+}
+input:checked + .toggleSwitchSlider:before {
+    transform: translateX(22px);
+    background-color: var(--ul-ink);
+}
+
+/* Range sliders. */
+.rangeSlider {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.22);
+}
+.rangeSliderBar {
+    height: 6px;
+    background: var(--ul-accent) !important;
+}
+.rangeSliderTrack {
+    top: -9px;
+    width: 10px;
+    height: 24px;
+    border-radius: 5px;
+}
+.settingsMemoryLabel {
+    font-weight: 700;
+}
+.settingsMemoryStatusTitle {
+    color: var(--ul-muted);
+}
+.settingsMemoryStatusValue {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* File selectors. */
+.settingsFileSelActions,
+#settingsJVMOptsContent {
+    width: 100%;
+}
+.settingsFileSelIcon {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px 0 0 10px;
+    padding: 0 12px;
+}
+.settingsFileSelVal {
+    height: 44px;
+    font-size: 13px !important;
+}
+#settingsJVMOptsVal {
+    height: 44px;
+    box-sizing: border-box;
+    border-radius: 0 10px 10px 0 !important;
+    font-size: 13px;
+}
+.settingsFileSelButton {
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    border-radius: 0 10px 10px 0;
+    text-shadow: none !important;
+}
+#settingsTabJava a,
+.settingsChangelogText a {
+    color: var(--ul-accent-soft);
+}
+
+/* Accounts tab. */
+.settingsAuthAccountTypeHeader {
+    border-bottom: 0;
+    margin-bottom: 14px;
+    padding: 0;
+}
+.settingsAuthAccountTypeHeaderLeft {
+    align-items: center;
+    column-gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+}
+#settingsAccountCount {
+    min-width: 26px;
+    height: 26px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border-radius: 13px;
+    background: rgba(63, 208, 245, 0.16);
+    color: var(--ul-accent-soft);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.settingsAuthAccountTypeHeaderLeft img {
+    display: none;
+}
+.settingsAddAuthAccount {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    font-size: 14px;
+    font-weight: 800;
+    text-shadow: none !important;
+}
+.settingsAuthAccount {
+    align-items: center;
+    padding: 14px;
+}
+.settingsAuthAccountLeft {
+    padding: 0;
+}
+.settingsAuthAccountImage {
+    display: block;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    image-rendering: pixelated;
+    background: #1B2750;
+}
+.settingsAuthAccountRight {
+    align-items: center;
+}
+.settingsAuthAccountDetails {
+    margin-left: 16px;
+}
+.settingsAuthAccountDetailTitle {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+.settingsAuthAccountDetailValue {
+    font-size: 17px;
+    font-weight: 700;
+}
+.settingsAuthAccountActions {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+}
+.settingsAuthAccountSelect {
+    opacity: 1;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid var(--ul-line);
+    background: var(--ul-soft);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: none !important;
+}
+.settingsAuthAccountSelect[selected] {
+    border-color: transparent;
+    background: rgba(91, 227, 138, 0.16);
+    color: var(--ul-ok);
+}
+.settingsAuthAccountLogOut {
+    opacity: 1;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 107, 107, 0.6);
+    background: transparent;
+    color: #FF9B9B;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none !important;
+}
+
+/* Mods tab. */
+.settingsSelServContainer {
+    align-items: center;
+    padding: 4px;
+}
+.settingsSelServContent {
+    flex-grow: 1;
+    padding: 0;
+}
+.settingsSelServContent .serverListing {
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+.settingsSwitchServerButton {
+    opacity: 1;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--ul-line);
+    border-radius: 12px;
+    background: var(--ul-soft);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none !important;
+}
+#settingsReqModsContent,
+#settingsOptModsContent,
+#settingsDropinModsContent {
+    font-size: 14px;
+}
+.settingsMod,
+.settingsDropinMod {
+    padding: 12px 16px;
+}
+.settingsModVersion {
+    color: var(--ul-muted);
+    font-size: 12px;
+}
+.settingsBaseMod[enabled] > .settingsModContent > .settingsModMainWrapper > .settingsModStatus {
+    background-color: var(--ul-ok);
+}
+#settingsDropinFileSystemButton,
+#settingsShaderpackButton {
+    background: var(--ul-soft);
+    border: 1px dashed rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-shadow: none !important;
+}
+#settingsDropinFileSystemButton {
+    padding: 0 18px;
+}
+#settingsDropinRefreshNote {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ul-muted);
+}
+.settingsDropinRemoveButton {
+    font-size: 12px;
+    color: #FF9B9B;
+    text-shadow: none !important;
+}
+.settingsSelectSelected,
+.settingsSelectOptions div {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+.settingsSelectSelected {
+    border-radius: 10px;
+    padding: 9px 16px;
+}
+.settingsSelectOptions {
+    background: #0E1630;
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Updates tab. */
+#settingsUpdateStatusContent,
+.settingsChangelogContent {
+    padding: 20px;
+}
+#settingsUpdateStatusHeadline,
+#settingsUpdateVersion,
+.settingsChangelogHeadline,
+#settingsAboutCurrentHeadline {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+#settingsUpdateStatusHeadline {
+    padding-bottom: 14px;
+}
+#settingsUpdateTitle {
+    padding-left: 0;
+    font-size: 18px;
+    font-weight: 800;
+}
+#settingsUpdateVersion {
+    padding: 14px 0;
+}
+#settingsUpdateVersionCheck,
+#settingsAboutCurrentVersionCheck {
+    margin: 0 4px 0 0;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: 13px;
+    background: var(--ul-ok);
+    color: var(--ul-ink);
+}
+#settingsUpdateVersionTitle,
+#settingsAboutCurrentVersionTitle {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ul-ok);
+}
+#settingsUpdateVersionLine,
+#settingsAboutCurrentVersionLine {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ul-muted);
+}
+#settingsUpdateProgressContainer {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 14px;
+}
+#settingsUpdateProgressLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ul-muted);
+}
+#settingsUpdateActionContainer {
+    padding-top: 16px;
+}
+#settingsUpdateActionButton {
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 6px 22px;
+    border-radius: 14px;
+    background: var(--ul-accent);
+    color: var(--ul-ink);
+    font-size: 14px;
+    font-weight: 800;
+    text-shadow: none !important;
+}
+#settingsUpdateActionButton:disabled {
+    background: var(--ul-soft);
+    color: var(--ul-muted);
+}
+.settingsChangelogLabel {
+    color: var(--ul-muted);
+}
+.settingsChangelogTitle {
+    font-size: 16px;
+    font-weight: 700;
+}
+.settingsChangelogText {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ul-body);
+}
+
+/* * *
+* Reduced motion
+* * */
+
+@media (prefers-reduced-motion: reduce) {
+    #ulBg {
+        transition: none;
+    }
+    body.ul-intro #landingDock,
+    body.ul-intro #newsButton,
+    body.ul-intro #updateIconContainer,
+    body.ul-intro #welcomeContent > *,
+    body.ul-intro #loginContent,
+    body.ul-intro.ul-start-landing #landingLogo,
+    #newsWindow,
+    #newsButtonAlert,
+    #settingsNavUpdate[update]::after {
+        animation: none;
+    }
+    .ulLogoShine,
+    .ulLogoSpark {
+        display: none;
+    }
+    #loadingContainer.ul-out {
+        display: none;
+    }
+}

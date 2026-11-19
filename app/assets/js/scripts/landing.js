@@ -39,6 +39,8 @@ const launch_progress_label   = document.getElementById('launch_progress_label')
 const launch_details_text     = document.getElementById('launch_details_text')
 const server_selection_button = document.getElementById('server_selection_button')
 const user_text               = document.getElementById('user_text')
+const launch_button           = document.getElementById('launch_button')
+const launch_ready            = document.getElementById('launch_ready')
 
 const loggerLanding = LoggerUtil.getLogger('Landing')
 
@@ -52,11 +54,80 @@ const loggerLanding = LoggerUtil.getLogger('Landing')
 function toggleLaunchArea(loading){
     if(loading){
         launch_details.style.display = 'flex'
-        launch_content.style.display = 'none'
+        launch_ready.style.display = 'none'
+        setLaunchLocked(true)
     } else {
         launch_details.style.display = 'none'
-        launch_content.style.display = 'inline-flex'
+        launch_ready.style.display = null
+        // While the game is starting the button stays locked, see watchGameStart().
+        if(!gameStarting){
+            setLaunchLocked(false)
+        }
     }
+}
+
+// True between the moment the game process is spawned and the moment its
+// window opens (or the process exits, or GAME_START_TIMEOUT elapses).
+let gameStarting = false
+let gameStartTimeout = null
+const GAME_START_TIMEOUT = 60000
+const GAME_WINDOW_GRACE = 3000
+
+/**
+ * Lock or unlock the launch button. A locked button stays visible but is
+ * greyed out, ignores clicks and explains why on hover.
+ *
+ * @param {boolean} locked True to lock, false to unlock.
+ */
+function setLaunchLocked(locked){
+    if(locked){
+        launch_button.setAttribute('launching', '')
+        launch_button.setAttribute('aria-disabled', 'true')
+        // Custom tooltip (see .ulTip in ultra.css): shown instantly on hover.
+        launch_button.setAttribute('data-tip', Lang.queryJS('landing.launch.alreadyLaunching'))
+    } else {
+        launch_button.removeAttribute('launching')
+        launch_button.removeAttribute('aria-disabled')
+        launch_button.removeAttribute('data-tip')
+        launch_ready.innerHTML = Lang.queryJS('landing.launch.ready')
+    }
+}
+
+/**
+ * Keep the launch button locked until the game window opens, the game
+ * process exits, or GAME_START_TIMEOUT elapses (safety net).
+ *
+ * @param {ChildProcess} gameProc The Minecraft process.
+ */
+function watchGameStart(gameProc){
+    gameStarting = true
+
+    const release = () => {
+        if(gameProc !== proc || !gameStarting){
+            return
+        }
+        gameStarting = false
+        clearTimeout(gameStartTimeout)
+        gameProc.stdout.removeListener('data', windowListener)
+        gameProc.removeListener('close', release)
+        gameProc.removeListener('error', release)
+        // The window is open (or the game is gone): back to the idle state.
+        toggleLaunchArea(false)
+    }
+    const windowListener = (data) => {
+        if(GAME_WINDOW_REGEX.test(data)){
+            // The window is opening: wait a little longer before unlocking,
+            // so the game cannot be started twice by an impatient click.
+            gameProc.stdout.removeListener('data', windowListener)
+            setTimeout(release, GAME_WINDOW_GRACE)
+        }
+    }
+
+    gameProc.stdout.on('data', windowListener)
+    gameProc.on('close', release)
+    gameProc.on('error', release)
+    clearTimeout(gameStartTimeout)
+    gameStartTimeout = setTimeout(release, GAME_START_TIMEOUT)
 }
 
 /**
@@ -110,6 +181,15 @@ function disableLaunchTemporarily(){
 
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
+    if(launch_button.hasAttribute('launching')){
+        return
+    }
+    // A launcher update is waiting: install it first. The game is launched
+    // once the launcher is back, or right away if the update fails.
+    if(requestUpdateBeforeLaunch(() => launch_button.click())){
+        return
+    }
+    setLaunchLocked(true)
     loggerLanding.info('Launching game..')
     try {
         const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -162,9 +242,7 @@ function updateSelectedAccount(authUser){
             document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/avatar/${authUser.displayName}')`
         }
     }
-    const updateIcon = document.getElementById('updateIconContainer')
-    const iconHTML = updateIcon ? updateIcon.outerHTML : ''
-    user_text.innerHTML = iconHTML + username
+    user_text.innerHTML = username
 }
 updateSelectedAccount(ConfigManager.getSelectedAccount())
 
@@ -185,6 +263,10 @@ function updateSelectedServer(serv){
 server_selection_button.innerHTML = '&#8226; ' + Lang.queryJS('landing.selectedServer.loading')
 server_selection_button.onclick = async e => {
     e.target.blur()
+    await toggleServerSelection(true)
+}
+document.getElementById('serverStatusButton').onclick = async e => {
+    e.currentTarget.blur()
     await toggleServerSelection(true)
 }
 
@@ -253,27 +335,32 @@ const refreshServerStatus = async (fade = false) => {
 
     let pLabel = Lang.queryJS('landing.serverStatus.server')
     let pVal = Lang.queryJS('landing.serverStatus.offline')
+    let online = false
 
     try {
 
         const servStat = await getServerStatus(47, serv.hostname, serv.port)
         console.log(servStat)
+        online = true
         pLabel = Lang.queryJS('landing.serverStatus.players')
-        pVal = servStat.players.online + '/' + servStat.players.max
+        pVal = Lang.queryJS(servStat.players.online === 1 ? 'landing.serverStatus.playerCount' : 'landing.serverStatus.playersCount', { count: servStat.players.online })
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
         loggerLanding.debug(err)
     }
+    const applyStatus = () => {
+        document.getElementById('landingPlayerLabel').innerHTML = pLabel
+        document.getElementById('player_count').innerHTML = pVal
+        document.getElementById('serverStatusButton').toggleAttribute('offline', !online)
+    }
     if(fade){
         $('#server_status_wrapper').fadeOut(250, () => {
-            document.getElementById('landingPlayerLabel').innerHTML = pLabel
-            document.getElementById('player_count').innerHTML = pVal
+            applyStatus()
             $('#server_status_wrapper').fadeIn(500)
         })
     } else {
-        document.getElementById('landingPlayerLabel').innerHTML = pLabel
-        document.getElementById('player_count').innerHTML = pVal
+        applyStatus()
     }
     
 }
@@ -299,6 +386,7 @@ function showLaunchFailure(title, desc){
         Lang.queryJS('landing.launch.okay')
     )
     setOverlayHandler(null)
+    document.getElementById('overlayContent').setAttribute('error', '')
     toggleOverlay(true)
     toggleLaunchArea(false)
 }
@@ -334,12 +422,12 @@ async function asyncSystemScan(effectiveJavaOptions, launchAfter = true){
             setLaunchDetails(Lang.queryJS('landing.systemScan.javaDownloadPrepare'))
             toggleOverlay(false)
             
-            try {
-                downloadJava(effectiveJavaOptions, launchAfter)
-            } catch(err) {
+            // downloadJava is asynchronous: its failures only reach .catch().
+            downloadJava(effectiveJavaOptions, launchAfter).catch(err => {
                 loggerLanding.error('Unhandled error in Java Download', err)
+                remote.getCurrentWindow().setProgressBar(-1)
                 showLaunchFailure(Lang.queryJS('landing.systemScan.javaDownloadFailureTitle'), Lang.queryJS('landing.systemScan.javaDownloadFailureText'))
-            }
+            })
         })
         setDismissHandler(() => {
             $('#overlayContent').fadeOut(250, () => {
@@ -455,6 +543,8 @@ let hasRPC = false
 // Change this if your server uses something different.
 const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
+// Printed by the game once its window has been created.
+const GAME_WINDOW_REGEX = /Backend library: LWJGL|Sound engine started/
 const MIN_LINGER = 10000
 
 async function dlAsync(login = true) {
@@ -482,6 +572,7 @@ async function dlAsync(login = true) {
     if(login) {
         if(ConfigManager.getSelectedAccount() == null){
             loggerLanding.error('You must be logged into an account.')
+            toggleLaunchArea(false)
             return
         }
     }
@@ -581,7 +672,10 @@ async function dlAsync(login = true) {
             }
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
             toggleLaunchArea(false)
-            disableLaunchTemporarily()
+            if(gameStarting){
+                // Still waiting for the game window, the button stays locked.
+                launch_ready.innerHTML = Lang.queryJS('landing.dlAsync.doneEnjoyServer')
+            }
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
@@ -613,6 +707,15 @@ async function dlAsync(login = true) {
             // Bind listeners to stdout.
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
+            watchGameStart(proc)
+            // Game gone before it finished loading: stop the animated dots,
+            // otherwise they would overwrite the text of the next launch.
+            proc.on('close', () => {
+                if(launchDotsInterval){
+                    clearInterval(launchDotsInterval)
+                    launchDotsInterval = null
+                }
+            })
 
             // Animated dots on launch text
             const launchText = Lang.queryJS('landing.dlAsync.launchingGame')
@@ -653,75 +756,70 @@ const nELoadSpan                    = document.getElementById('nELoadSpan')
 
 // News slide caches.
 let newsActive = false
-let newsGlideCount = 0
 
 /**
- * Show the news UI via a slide animation.
- * 
- * @param {boolean} up True to slide up, otherwise false. 
+ * Open or close the news window.
+ *
+ * @param {boolean} open True to open, false to close.
  */
-function slide_(up){
-    const lCUpper = document.querySelector('#landingContainer > #upper')
-    const lCLLeft = document.querySelector('#landingContainer > #lower > #left')
-    const lCLCenter = document.querySelector('#landingContainer > #lower > #center')
-    const lCLRight = document.querySelector('#landingContainer > #lower > #right')
-    const newsBtn = document.querySelector('#landingContainer > #lower > #center #content')
-    const landingContainer = document.getElementById('landingContainer')
-    const newsContainer = document.querySelector('#landingContainer > #newsContainer')
-
-    newsGlideCount++
-
-    if(up){
-        lCUpper.style.top = '-200vh'
-        lCLLeft.style.top = '-200vh'
-        lCLCenter.style.top = '-200vh'
-        lCLRight.style.top = '-200vh'
-        newsBtn.style.top = '130vh'
-        newsContainer.style.top = '0px'
-        //date.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
-        //landingContainer.style.background = 'rgba(29, 29, 29, 0.55)'
-        landingContainer.style.background = 'rgba(0, 0, 0, 0.50)'
-        setTimeout(() => {
-            if(newsGlideCount === 1){
-                lCLCenter.style.transition = 'none'
-                newsBtn.style.transition = 'none'
-            }
-            newsGlideCount--
-        }, 2000)
-    } else {
-        setTimeout(() => {
-            newsGlideCount--
-        }, 2000)
-        landingContainer.style.background = null
-        lCLCenter.style.transition = null
-        newsBtn.style.transition = null
-        newsContainer.style.top = '100%'
-        lCUpper.style.top = '0px'
-        lCLLeft.style.top = '0px'
-        lCLCenter.style.top = '0px'
-        lCLRight.style.top = '0px'
-        newsBtn.style.top = '10px'
+function toggleNews(open){
+    if(open === newsActive){
+        return
     }
-}
-
-// Bind news button.
-document.getElementById('newsButton').onclick = () => {
-    // Toggle tabbing.
-    if(newsActive){
-        $('#landingContainer *').removeAttr('tabindex')
-        $('#newsContainer *').attr('tabindex', '-1')
-    } else {
+    newsActive = open
+    if(open){
+        // Toggle tabbing.
         $('#landingContainer *').attr('tabindex', '-1')
-        $('#newsContainer, #newsContainer *, #lower, #lower #center *').removeAttr('tabindex')
+        $('#newsContainer, #newsContainer *').removeAttr('tabindex')
         if(newsAlertShown){
-            $('#newsButtonAlert').fadeOut(2000)
+            $('#newsButtonAlert').fadeOut(400)
+            document.getElementById('newsButton').removeAttribute('unread')
             newsAlertShown = false
             ConfigManager.setNewsCacheDismissed(true)
             ConfigManager.save()
         }
+        // The window frame buttons sit underneath the news window.
+        document.body.setAttribute('news', '')
+        newsArticleContentScrollable.scrollTop = 0
+        $('#newsContainer').fadeIn(200)
+    } else {
+        $('#landingContainer *').removeAttr('tabindex')
+        $('#newsContainer *').attr('tabindex', '-1')
+        $('#newsContainer').fadeOut(200, () => {
+            document.body.removeAttribute('news')
+        })
     }
-    slide_(!newsActive)
-    newsActive = !newsActive
+}
+
+// Bind news card, close button and backdrop.
+document.getElementById('newsButton').onclick = () => {
+    toggleNews(!newsActive)
+}
+document.getElementById('newsClose').onclick = () => {
+    toggleNews(false)
+}
+document.getElementById('newsContainer').addEventListener('click', (e) => {
+    if(e.target.id === 'newsContainer'){
+        toggleNews(false)
+    }
+})
+
+/**
+ * Update the news card shown on the landing view.
+ *
+ * @param {string} title The text displayed as the card title.
+ * @param {string} image Optional. URL of the card thumbnail.
+ */
+function setNewsCard(title, image = null){
+    document.getElementById('newsCardTitle').innerHTML = title
+    const cardImage = document.getElementById('newsCardImage')
+    if(image){
+        cardImage.style.backgroundImage = `url('${image}')`
+        cardImage.setAttribute('loaded', '')
+    } else {
+        cardImage.style.backgroundImage = null
+        cardImage.removeAttribute('loaded')
+    }
 }
 
 // Array to store article meta.
@@ -796,6 +894,7 @@ let newsAlertShown = false
  */
 function showNewsAlert(){
     newsAlertShown = true
+    document.getElementById('newsButton').setAttribute('unread', '')
     $(newsButtonAlert).fadeIn(250)
 }
 
@@ -827,6 +926,7 @@ async function initNews(){
     if(newsArr == null){
         // News Loading Failed
         setNewsLoading(false)
+        setNewsCard(Lang.queryJS('landing.news.failed'))
 
         await $('#newsErrorLoading').fadeOut(250).promise()
         await $('#newsErrorFailed').fadeIn(250).promise()
@@ -834,6 +934,7 @@ async function initNews(){
     } else if(newsArr.length === 0) {
         // No News Articles
         setNewsLoading(false)
+        setNewsCard(Lang.queryJS('landing.news.none'))
 
         ConfigManager.setNewsCache({
             date: null,
@@ -849,9 +950,11 @@ async function initNews(){
         setNewsLoading(false)
 
         const lN = newsArr[0]
+        setNewsCard(lN.title, lN.image)
         const cached = ConfigManager.getNewsCache()
         let newHash = await digestMessage(lN.content)
-        let newDate = new Date(lN.date)
+        // The displayed date is a French string that Date cannot always parse back.
+        let newDate = new Date(lN.timestamp)
         let isNew = false
 
         if(cached.date != null && cached.content != null){
@@ -915,6 +1018,9 @@ document.addEventListener('keydown', (e) => {
         if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
             document.getElementById(e.key === 'ArrowRight' ? 'newsNavigateRight' : 'newsNavigateLeft').click()
         }
+        if(e.key === 'Escape' && !isOverlayVisible()){
+            toggleNews(false)
+        }
         // Interferes with scrolling an article using the down arrow.
         // Not sure of a straight forward solution at this point.
         // if(e.key === 'ArrowDown'){
@@ -938,7 +1044,8 @@ document.addEventListener('keydown', (e) => {
 function displayArticle(articleObject, index){
     newsArticleTitle.innerHTML = articleObject.title
     newsArticleTitle.href = articleObject.link
-    newsArticleAuthor.innerHTML = 'by ' + articleObject.author
+    newsArticleAuthor.innerHTML = Lang.queryJS('landing.news.by', { author: articleObject.author })
+    document.getElementById('newsArticleSite').href = articleObject.link
     newsArticleDate.innerHTML = articleObject.date
     newsArticleComments.innerHTML = articleObject.comments
     newsArticleComments.href = articleObject.commentsLink
@@ -951,6 +1058,7 @@ function displayArticle(articleObject, index){
     })
     newsNavigationStatus.innerHTML = Lang.query('ejs.landing.newsNavigationStatus', {currentPage: index, totalPages: newsArr.length})
     newsContent.setAttribute('article', index-1)
+    newsArticleContentScrollable.scrollTop = 0
 }
 
 /**
@@ -980,7 +1088,8 @@ async function loadNews(){
                     const el = $(items[i])
 
                     // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
+                    const pubDate = new Date(el.find('pubDate').text())
+                    const date = pubDate.toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'})
 
                     // Resolve comments.
                     let comments = el.find('slash\\:comments').text() || '0'
@@ -991,8 +1100,11 @@ async function loadNews(){
                     let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
                     let matches
                     while((matches = regex.exec(content))){
-                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
+                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1].replace(/^\/+/, '')}"`)
                     }
+
+                    // Thumbnail for the news card.
+                    const image = el.find('enclosure[type^="image"]').attr('url') || null
 
                     let link   = el.find('link').text()
                     let title  = el.find('title').text()
@@ -1004,8 +1116,10 @@ async function loadNews(){
                             link,
                             title,
                             date,
+                            timestamp: pubDate.getTime(),
                             author,
                             content,
+                            image,
                             comments,
                             commentsLink: link + '#comments'
                         }

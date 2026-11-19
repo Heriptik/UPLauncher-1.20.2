@@ -24,7 +24,7 @@ let lu = false, lp = false
 
 /**
  * Show a login error.
- * 
+ *
  * @param {HTMLElement} element The element on which to display the error.
  * @param {string} value The error text.
  */
@@ -35,7 +35,7 @@ function showError(element, value){
 
 /**
  * Shake a login error to add emphasis.
- * 
+ *
  * @param {HTMLElement} element The element to shake.
  */
 function shakeError(element){
@@ -101,7 +101,7 @@ loginUsername.addEventListener('input', (e) => {
 
 /**
  * Enable or disable the login button.
- * 
+ *
  * @param {boolean} v True to enable, false to disable.
  */
 function loginDisabled(v){
@@ -112,7 +112,7 @@ function loginDisabled(v){
 
 /**
  * Enable or disable loading elements.
- * 
+ *
  * @param {boolean} v True to enable, false to disable.
  */
 function loginLoading(v){
@@ -127,14 +127,14 @@ function loginLoading(v){
 
 /**
  * Enable or disable login form.
- * 
+ *
  * @param {boolean} v True to enable, false to disable.
  */
 function formDisabled(v){
     loginDisabled(v)
     loginCancelButton.disabled = v
-    loginUsername.disabled = true;
-    loginPassword.style.display = 'none';
+    loginUsername.disabled = v
+    loginPassword.style.display = 'none'
     if(v){
         checkmarkContainer.setAttribute('disabled', v)
     } else {
@@ -219,6 +219,7 @@ loginButton.addEventListener('click', () => {
             formDisabled(false)
             toggleOverlay(false)
         })
+        document.getElementById('overlayContent').setAttribute('error', '')
         toggleOverlay(true)
     })
 

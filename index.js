@@ -2,7 +2,7 @@ const remoteMain = require('@electron/remote/main')
 remoteMain.initialize()
 
 // Requirements
-const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, Menu, screen, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
 const ejse                              = require('ejs-electron')
 const fs                                = require('fs')
@@ -25,7 +25,7 @@ function initAutoUpdater(event, data) {
         // Defaults to true if application version contains prerelease components (e.g. 0.12.1-alpha.1)
         // autoUpdater.allowPrerelease = true
     }
-    
+
     if(isDev){
         autoUpdater.autoInstallOnAppQuit = false
         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml')
@@ -35,6 +35,9 @@ function initAutoUpdater(event, data) {
     }
     autoUpdater.on('update-available', (info) => {
         event.sender.send('autoUpdateNotification', 'update-available', info)
+    })
+    autoUpdater.on('download-progress', (progress) => {
+        event.sender.send('autoUpdateNotification', 'download-progress', progress)
     })
     autoUpdater.on('update-downloaded', (info) => {
         event.sender.send('autoUpdateNotification', 'update-downloaded', info)
@@ -47,7 +50,7 @@ function initAutoUpdater(event, data) {
     })
     autoUpdater.on('error', (err) => {
         event.sender.send('autoUpdateNotification', 'realerror', err)
-    }) 
+    })
 }
 
 // Open channel to listen for update actions.
@@ -77,7 +80,12 @@ ipcMain.on('autoUpdateAction', (event, arg, data) => {
             }
             break
         case 'installUpdateNow':
-            autoUpdater.quitAndInstall()
+            if(data === true){
+                // Mandatory update: silent install, then reopen the launcher.
+                autoUpdater.quitAndInstall(true, true)
+            } else {
+                autoUpdater.quitAndInstall()
+            }
             break
         default:
             console.log('Unknown argument', arg)
@@ -198,7 +206,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
             ipcEvent.reply(MSFT_OPCODE.REPLY_LOGOUT, MSFT_REPLY_TYPE.SUCCESS, uuid, isLastAccount)
         }
     })
-    
+
     msftLogoutWindow.webContents.on('did-navigate', (_, uri) => {
         if(uri.startsWith('https://login.microsoftonline.com/common/oauth2/v2.0/logoutsession')) {
             msftLogoutSuccess = true
@@ -215,7 +223,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
             }, 5000)
         }
     })
-    
+
     msftLogoutWindow.removeMenu()
     msftLogoutWindow.loadURL('https://login.microsoftonline.com/common/oauth2/v2.0/logout')
 })
@@ -226,9 +234,19 @@ let win
 
 function createWindow() {
 
+    // The interface is designed for 1280x720. On a smaller screen (or with a
+    // high Windows display scale) the window is shrunk to fit and the page is
+    // zoomed out by the same ratio in uicore.js.
+    const workArea = screen.getPrimaryDisplay().workAreaSize
+    const fit = Math.min(1, workArea.width / 1280, workArea.height / 720)
+
     win = new BrowserWindow({
-        width: 980,
-        height: 552,
+        width: Math.floor(1280 * fit),
+        height: Math.floor(720 * fit),
+        useContentSize: true,
+        resizable: false,
+        maximizable: false,
+        fullscreenable: false,
         icon: getPlatformIcon('SealCircle'),
         frame: false,
         webPreferences: {
@@ -236,7 +254,7 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false
         },
-        backgroundColor: '#171614'
+        backgroundColor: '#0A1024'
     })
     remoteMain.enable(win.webContents)
 
@@ -254,7 +272,7 @@ function createWindow() {
 
     win.removeMenu()
 
-    win.resizable = true
+    win.resizable = false
 
     win.on('closed', () => {
         win = null
@@ -262,7 +280,7 @@ function createWindow() {
 }
 
 function createMenu() {
-    
+
     if(process.platform === 'darwin') {
 
         // Extend default included application menu to continue support for quit keyboard shortcut

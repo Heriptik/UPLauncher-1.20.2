@@ -43,7 +43,7 @@
                         <button class="settingsAddAuthAccount" id="settingsAddMicrosoftAccount"><%- lang('settings.addMicrosoftAccount') %></button>
                     </div>
                 </div>
-                
+
                 <div class="settingsCurrentAccounts" id="settingsCurrentMicrosoftAccounts">
                     <!-- Microsoft auth accounts populated here. -->
                 </div>
@@ -54,12 +54,13 @@
                     <div class="settingsAuthAccountTypeHeaderLeft">
                         <img src="assets/images/icons/mojang.svg" alt="Mojang logo" width="22" height="22">
                         <span><%- lang('settings.mojangAccount') %></span>
+                        <span id="settingsAccountCount">0</span>
                     </div>
                     <div class="settingsAuthAccountTypeHeaderRight">
                         <button class="settingsAddAuthAccount" id="settingsAddMojangAccount"><%- lang('settings.addMojangAccount') %></button>
                     </div>
                 </div>
-                
+
                 <div class="settingsCurrentAccounts" id="settingsCurrentMojangAccounts">
                     <!-- Mojang auth accounts populated here. -->
                 </div>
@@ -138,14 +139,14 @@
                 <div id="settingsOptModsContainer">
                     <div class="settingsModsHeader"><%- lang('settings.optionalMods') %></div>
                     <div id="settingsOptModsContent">
-                        
+
                     </div>
                 </div>
                 <div id="settingsDropinModsContainer">
                     <div class="settingsModsHeader"><%- lang('settings.dropinMods') %></div>
                     <button id="settingsDropinFileSystemButton"><%- lang('settings.addMods') %> <span id="settingsDropinRefreshNote"><%- lang('settings.dropinRefreshNote') %></span></button>
                     <div id="settingsDropinModsContent">
-                        
+
                     </div>
                 </div>
                 <div id="settingsShadersContainer">
@@ -366,6 +367,10 @@
                                 <span id="settingsUpdateVersionValue">0.0.1-alpha.18</span>
                             </div>
                         </div>
+                    </div>
+                    <div id="settingsUpdateProgressContainer">
+                        <span id="settingsUpdateProgressLabel"></span>
+                        <progress id="settingsUpdateProgress" value="0" max="100"></progress>
                     </div>
                     <div id="settingsUpdateActionContainer">
                         <button id="settingsUpdateActionButton"><%- lang('settings.checkForUpdates') %></button>

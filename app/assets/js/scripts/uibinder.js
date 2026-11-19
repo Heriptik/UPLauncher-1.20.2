@@ -28,8 +28,8 @@ let currentView
 
 /**
  * Switch launcher views.
- * 
- * @param {string} current The ID of the current view container. 
+ *
+ * @param {string} current The ID of the current view container.
  * @param {*} next The ID of the next view container.
  * @param {*} currentFadeTime Optional. The fade out time for the current view.
  * @param {*} nextFadeTime Optional. The fade in time for the next view.
@@ -50,7 +50,7 @@ function switchView(current, next, currentFadeTime = 500, nextFadeTime = 500, on
 
 /**
  * Get the currently shown view container.
- * 
+ *
  * @returns {string} The currently shown view container.
  */
 function getCurrentView(){
@@ -67,9 +67,17 @@ async function showMainUI(data){
     await prepareSettings(true)
     updateSelectedServer(data.getServerById(ConfigManager.getSelectedServer()))
     refreshServerStatus()
-    setTimeout(() => {
-        document.getElementById('frameBar').style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-        document.body.style.backgroundImage = `url('assets/images/backgrounds/${document.body.getAttribute('bkid')}.jpg')`
+    // Opening sequence: wait for the background image, then let the splash
+    // logo glide to its place while the interface settles in (see ultra.css).
+    const bgUrl = `assets/images/backgrounds/${document.body.getAttribute('bkid')}.jpg`
+    let introStarted = false
+    const startIntro = () => {
+        if(introStarted){
+            return
+        }
+        introStarted = true
+
+        document.getElementById('ulBg').style.backgroundImage = `url('${bgUrl}')`
         $('#main').show()
 
         const isLoggedIn = Object.keys(ConfigManager.getAuthAccounts()).length > 0
@@ -82,31 +90,69 @@ async function showMainUI(data){
 
         if(ConfigManager.isFirstLaunch()){
             currentView = VIEWS.welcome
-            $(VIEWS.welcome).fadeIn(1000)
         } else {
             if(isLoggedIn){
                 currentView = VIEWS.landing
-                $(VIEWS.landing).fadeIn(1000)
             } else {
-                loginOptionsCancelEnabled(false)
-                loginOptionsViewOnLoginSuccess = VIEWS.landing
-                loginOptionsViewOnLoginCancel = VIEWS.loginOptions
-                currentView = VIEWS.loginOptions
-                $(VIEWS.loginOptions).fadeIn(1000)
+                showLoginView(VIEWS.landing, VIEWS.login, false, false)
+                currentView = VIEWS.login
             }
         }
+        $(currentView).show()
 
+        const toLanding = currentView === VIEWS.landing
+        const loadingContainer = document.getElementById('loadingContainer')
+        document.body.classList.add('ul-booted', 'ul-intro')
+        if(toLanding){
+            document.body.classList.add('ul-start-landing')
+        }
+        loadingContainer.classList.add('ul-out', toLanding ? 'to-land' : 'to-fade')
         setTimeout(() => {
-            $('#loadingContainer').fadeOut(500, () => {
-                $('#loadSpinnerImage').removeClass('rotating')
-            })
-        }, 250)
-        
+            loadingContainer.style.display = 'none'
+        }, 1000)
+        setTimeout(() => {
+            // Entrance animations must not replay when views are switched later.
+            document.body.classList.remove('ul-intro', 'ul-start-landing')
+            // Everything is in place: first logo effect, then one every few seconds.
+            startLogoSparkle()
+            // Back from an update started by the play button: launch the game.
+            if(consumeLaunchAfterUpdate() && getCurrentView() === VIEWS.landing){
+                document.getElementById('launch_button').click()
+            }
+        }, 2200)
+    }
+    setTimeout(() => {
+        const bgImage = new Image()
+        bgImage.onload = startIntro
+        bgImage.onerror = startIntro
+        bgImage.src = bgUrl
+        // Never wait more than a moment for the background.
+        setTimeout(startIntro, 1500)
     }, 750)
     // Disable tabbing to the news container.
     initNews().then(() => {
         $('#newsContainer *').attr('tabindex', '-1')
     })
+}
+
+/**
+ * Prepare and optionally display the login (pseudo) view. The intermediate
+ * login options screen is no longer shown.
+ *
+ * @param {string} viewOnSuccess The view to show after a successful login.
+ * @param {string} viewOnCancel The view to show if the login is cancelled.
+ * @param {boolean} cancellable Whether the cancel button is displayed.
+ * @param {boolean} doSwitch Optional. False to only prepare the view.
+ * @param {function} cancelHandler Optional. Called when the login is cancelled.
+ */
+function showLoginView(viewOnSuccess, viewOnCancel, cancellable, doSwitch = true, cancelHandler = null){
+    loginViewOnSuccess = viewOnSuccess
+    loginViewOnCancel = viewOnCancel
+    loginViewCancelHandler = cancelHandler
+    loginCancelEnabled(cancellable)
+    if(doSwitch){
+        switchView(getCurrentView(), VIEWS.login)
+    }
 }
 
 function showFatalStartupError(){
@@ -122,6 +168,7 @@ function showFatalStartupError(){
                 const window = remote.getCurrentWindow()
                 window.close()
             })
+            document.getElementById('overlayContent').setAttribute('error', '')
             toggleOverlay(true)
         })
     }, 750)
@@ -129,7 +176,7 @@ function showFatalStartupError(){
 
 /**
  * Common functions to perform after refreshing the distro index.
- * 
+ *
  * @param {Object} data The distro index object.
  */
 function onDistroRefresh(data){
@@ -142,7 +189,7 @@ function onDistroRefresh(data){
 
 /**
  * Sync the mod configurations with the distro index.
- * 
+ *
  * @param {Object} data The distro index object.
  */
 function syncModConfigurations(data){
@@ -226,7 +273,7 @@ function syncModConfigurations(data){
 
 /**
  * Ensure java configurations are present for the available servers.
- * 
+ *
  * @param {Object} data The distro index object.
  */
 function ensureJavaSettings(data) {
@@ -243,7 +290,7 @@ function ensureJavaSettings(data) {
  * Recursively scan for optional sub modules. If none are found,
  * this function returns a boolean. If optional sub modules do exist,
  * a recursive configuration object is returned.
- * 
+ *
  * @returns {boolean | Object} The resolved mod configuration.
  */
 function scanOptionalSubModules(mdls, origin){
@@ -283,11 +330,11 @@ function scanOptionalSubModules(mdls, origin){
 
 /**
  * Recursively merge an old configuration into a new configuration.
- * 
+ *
  * @param {boolean | Object} o The old configuration value.
  * @param {boolean | Object} n The new configuration value.
  * @param {boolean} nReq If the new value is a required mod.
- * 
+ *
  * @returns {boolean | Object} The merged configuration.
  */
 function mergeModConfiguration(o, n, nReq = false){
@@ -339,6 +386,7 @@ async function validateSelectedAccount(){
                 Lang.queryJS('uibinder.validateAccount.loginButton'),
                 Lang.queryJS('uibinder.validateAccount.selectAnotherAccountButton')
             )
+            document.getElementById('overlayContent').setAttribute('error', '')
             setOverlayHandler(() => {
 
                 const isMicrosoft = selectedAcc.type === 'microsoft'
@@ -351,13 +399,12 @@ async function validateSelectedAccount(){
                     document.getElementById('loginUsername').value = selectedAcc.username
                     validateEmail(selectedAcc.username)
                 }
-                
-                loginOptionsViewOnLoginSuccess = getCurrentView()
-                loginOptionsViewOnLoginCancel = VIEWS.loginOptions
+
+                const viewBeforeLogin = getCurrentView()
+                let cancelHandler = null
 
                 if(accLen > 0) {
-                    loginOptionsViewOnCancel = getCurrentView()
-                    loginOptionsViewCancelHandler = () => {
+                    cancelHandler = () => {
                         if(isMicrosoft) {
                             ConfigManager.addMicrosoftAuthAccount(
                                 selectedAcc.uuid,
@@ -374,12 +421,10 @@ async function validateSelectedAccount(){
                         ConfigManager.save()
                         validateSelectedAccount()
                     }
-                    loginOptionsCancelEnabled(true)
-                } else {
-                    loginOptionsCancelEnabled(false)
                 }
                 toggleOverlay(false)
-                switchView(getCurrentView(), VIEWS.loginOptions)
+                document.getElementById('loginUsername').disabled = false
+                showLoginView(viewBeforeLogin, viewBeforeLogin, accLen > 0, true, cancelHandler)
             })
             setDismissHandler(() => {
                 if(accLen > 1){
@@ -408,7 +453,7 @@ async function validateSelectedAccount(){
 /**
  * Temporary function to update the selected account along
  * with the relevent UI elements.
- * 
+ *
  * @param {string} uuid The UUID of the account.
  */
 function setSelectedAccount(uuid){
@@ -430,7 +475,7 @@ document.addEventListener('readystatechange', async () => {
             } else {
                 showFatalStartupError()
             }
-        } 
+        }
     }
 
 }, false)
